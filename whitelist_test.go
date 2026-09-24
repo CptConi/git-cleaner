@@ -1,6 +1,49 @@
 package main
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
+
+func TestParseExcludes(t *testing.T) {
+	e, err := ParseExcludes(" acme/ , ./personal//portfolio,,clients/* ")
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertStrings(t, "normalized patterns", e, []string{"acme", "personal/portfolio", "clients/*"})
+
+	for _, raw := range []string{
+		"[oops",              // malformed glob
+		"/Users/me/acme",     // absolute path, e.g. an expanded ~/Projects/acme
+		"C:/Projects/acme",   // Windows drive
+		`personal\portfolio`, // backslash separator
+		"../acme",            // leaving the root
+		"acme/../x",          // ".." segment hidden by path.Clean
+		"**/app",             // unsupported recursive wildcard
+	} {
+		_, err := ParseExcludes("ok," + raw)
+		if err == nil || !strings.Contains(err.Error(), "--exclude") || !strings.Contains(err.Error(), raw) {
+			t.Errorf("ParseExcludes(%q) = %v, want an error naming --exclude and the pattern", raw, err)
+		}
+	}
+}
+
+func TestExcludeListMatch(t *testing.T) {
+	e := ExcludeList{"acme", "personal/*"}
+	for rel, want := range map[string]string{
+		"acme":               "acme",
+		"acme/web":           "", // only the folder itself: the walk skips its subtree
+		"personal/portfolio": "personal/*",
+		"personal":           "",
+		"Acme":               "", // case-sensitive
+		"clients/acme":       "", // anchored at the root
+	} {
+		got, ok := e.Match(rel)
+		if got != want || ok != (want != "") {
+			t.Errorf("Match(%q) = %q, %v; want %q", rel, got, ok, want)
+		}
+	}
+}
 
 func TestWhitelist(t *testing.T) {
 	w, err := ParseWhitelist(" main, ,release/*,hotfix-? ")
@@ -24,8 +67,8 @@ func TestWhitelist(t *testing.T) {
 		}
 	}
 
-	if _, err := ParseWhitelist("main,[oops"); err == nil {
-		t.Error("an invalid pattern was accepted")
+	if _, err := ParseWhitelist("main,[oops"); err == nil || !strings.Contains(err.Error(), "--keep") {
+		t.Errorf("invalid pattern: got %v, want an error naming --keep", err)
 	}
 	if w, _ := ParseWhitelist(""); len(w) != 0 || w.Matches("main") || w.String() != "(none)" {
 		t.Errorf("empty whitelist = %q", w)

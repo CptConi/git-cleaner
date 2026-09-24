@@ -54,6 +54,7 @@ const (
 type Options struct {
 	Root    string        // absolute directory to scan (symlinks resolved)
 	Keep    Whitelist     // local branches that are never deleted
+	Exclude ExcludeList   // folders skipped with everything below them
 	DryRun  bool          // only report what would be done
 	NoFetch bool          // skip the "git fetch --prune" step
 	GC      bool          // run "git gc" in each repository after the cleanup
@@ -168,7 +169,11 @@ func parseArgs(args []string) (*Options, error) {
 
 	// When adding a flag, document it in usage() too.
 	opts := &Options{}
-	keep := flags.String("keep", defaultKeep, "")
+	// --keep and --exclude may be repeated: every occurrence adds its
+	// comma-separated patterns (flag.String would keep only the last one).
+	var keep, exclude []string
+	flags.Func("keep", "", func(v string) error { keep = append(keep, v); return nil })
+	flags.Func("exclude", "", func(v string) error { exclude = append(exclude, v); return nil })
 	flags.BoolVar(&opts.DryRun, "dry-run", false, "")
 	flags.BoolVar(&opts.NoFetch, "no-fetch", false, "")
 	flags.BoolVar(&opts.GC, "gc", false, "")
@@ -190,13 +195,20 @@ func parseArgs(args []string) (*Options, error) {
 		return nil, errors.New("missing <root-directory> argument")
 	case len(positional) > 1:
 		return nil, fmt.Errorf("expected a single <root-directory>, got %d arguments: %s "+
-			"(separate --keep values with commas, not spaces)", len(positional), strings.Join(positional, " "))
+			"(separate --keep and --exclude values with commas, not spaces)", len(positional), strings.Join(positional, " "))
 	case opts.Jobs < 1:
 		return nil, errors.New("--jobs must be at least 1")
 	case opts.Timeout < 0:
 		return nil, errors.New("--timeout cannot be negative")
 	}
-	if opts.Keep, err = ParseWhitelist(*keep); err != nil {
+	keepList := defaultKeep // only when --keep is absent: --keep "" protects nothing
+	if len(keep) > 0 {
+		keepList = strings.Join(keep, ",")
+	}
+	if opts.Keep, err = ParseWhitelist(keepList); err != nil {
+		return nil, err
+	}
+	if opts.Exclude, err = ParseExcludes(strings.Join(exclude, ",")); err != nil {
 		return nil, err
 	}
 	if opts.Root, err = resolveRoot(positional[0]); err != nil {

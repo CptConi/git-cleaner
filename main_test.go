@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"flag"
 	"os"
@@ -50,6 +51,8 @@ func TestParseArgs(t *testing.T) {
 		{"--jobs", "0", root},
 		{"--timeout", "-1s", root},
 		{"--keep", "main,[", root},
+		{"--exclude", "/abs/acme", root},
+		{"--exclude", `personal\portfolio`, root},
 		{"--unknown", root},
 		{filepath.Join(root, "missing")},
 	} {
@@ -57,11 +60,35 @@ func TestParseArgs(t *testing.T) {
 			t.Errorf("parseArgs(%q) succeeded, want an error", args)
 		}
 	}
+	// Repeated pattern flags add up; --exclude is accepted after the root too.
+	opts, err = parseArgs([]string{"--keep", "main", root, "--keep", "develop,release/*", "--exclude", "acme/", "--exclude", "personal/portfolio"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertStrings(t, "repeated --keep", opts.Keep, []string{"main", "develop", "release/*"})
+	assertStrings(t, "repeated --exclude", opts.Exclude, []string{"acme", "personal/portfolio"})
+
+	// An explicitly empty --keep protects nothing; an absent one uses the defaults.
+	if opts, err = parseArgs([]string{"--keep", "", root}); err != nil || len(opts.Keep) != 0 {
+		t.Errorf(`--keep "": keep = %q, err = %v; want no pattern`, opts.Keep, err)
+	}
+
 	if _, err := parseArgs([]string{"-h"}); !errors.Is(err, flag.ErrHelp) {
 		t.Errorf("-h: got %v, want flag.ErrHelp", err)
 	}
 	if _, err := parseArgs([]string{"--version"}); !errors.Is(err, errVersion) {
 		t.Errorf("--version: got %v, want errVersion", err)
+	}
+}
+
+// Invalid patterns stop the run before anything is scanned, with exit status 2.
+func TestRunRejectsInvalidExcludePattern(t *testing.T) {
+	var out, errOut bytes.Buffer
+	if code := run([]string{"--exclude", "acme,**/app", t.TempDir()}, &out, &errOut); code != exitUsage {
+		t.Errorf("exit code %d, want %d", code, exitUsage)
+	}
+	if !strings.Contains(errOut.String(), `"**/app"`) || strings.Contains(out.String(), "Scanning") {
+		t.Errorf("stdout:\n%s\nstderr:\n%s", &out, &errOut)
 	}
 }
 

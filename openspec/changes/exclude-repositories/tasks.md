@@ -1,10 +1,10 @@
 ## 1. Pattern parsing
 
-- [ ] 1.1 Extract a shared `parsePatterns(flag, list)` from `ParseWhitelist`: comma splitting, trimming, blank entries ignored, `path.Clean`, `path.Match` validation, errors naming the flag; keep `ParseWhitelist` as a wrapper
-- [ ] 1.2 For `--exclude`, also reject absolute paths, `..` segments, `**` and backslashes with a message explaining that patterns are relative to the root with `/` separators
-- [ ] 1.3 Declare `--keep` and `--exclude` with `flag.Func` so that repeated occurrences add up; `--keep` falls back to the default list only when absent; add `Options.Exclude`
-- [ ] 1.4 Name both flags in the hint printed for extra positional arguments
-- [ ] 1.5 Unit tests: normalization (`acme/`, `./acme`), each rejection case with exit status 2, repeated `--keep` and `--exclude`, flags accepted after the root argument
+- [x] 1.1 Extract a shared `parsePatterns(flag, list)` from `ParseWhitelist`: comma splitting, trimming, blank entries ignored, `path.Clean`, `path.Match` validation, errors naming the flag; keep `ParseWhitelist` as a wrapper
+- [x] 1.2 For `--exclude`, also reject absolute paths, `..` segments, `**` and backslashes with a message explaining that patterns are relative to the root with `/` separators
+- [x] 1.3 Declare `--keep` and `--exclude` with `flag.Func` so that repeated occurrences add up; `--keep` falls back to the default list only when absent; add `Options.Exclude`
+- [x] 1.4 Name both flags in the hint printed for extra positional arguments
+- [x] 1.5 Unit tests: normalization (`acme/`, `./acme`), each rejection case with exit status 2, repeated `--keep` and `--exclude`, flags accepted after the root argument
 
 ## 2. Discovery
 
