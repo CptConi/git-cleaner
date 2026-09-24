@@ -110,7 +110,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "git-cleaner: cannot scan %s: %v\n", opts.Root, err)
 		return exitUsage
 	}
-	out.ScanResult(len(scan.Repos), scan.Warnings)
+	out.ScanResult(scan)
 	repos := scan.Repos
 	if len(repos) == 0 {
 		return exitOK
@@ -118,7 +118,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 
 	// Step 2: clean them, printing each result as soon as it is available.
 	cleaner := NewCleaner(git, opts)
-	summary := Summary{EstimateSupported: cleaner.diskUsage}
+	summary := Summary{EstimateSupported: cleaner.diskUsage, Excluded: len(scan.Excluded)}
 	processAll(cleaner, repos, opts.Jobs, func(i int, res *RepoResult) {
 		out.Repo(i+1, len(repos), res)
 		summary.Add(res)

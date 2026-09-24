@@ -59,27 +59,49 @@ func (p *Printer) Header() {
 	} else {
 		fmt.Fprintf(p.w, "%s %s\n", p.paint(bold, "git-cleaner"), appVersion())
 	}
-	fmt.Fprintf(p.w, "  Mode   %s\n", mode)
-	fmt.Fprintf(p.w, "  Root   %s\n", p.opts.Root)
-	fmt.Fprintf(p.w, "  Keep   %s\n", p.opts.Keep)
-	fmt.Fprintf(p.w, "  Fetch  %s\n", fetch)
+	field := func(label, value string) { fmt.Fprintf(p.w, "  %-7s %s\n", label, value) } // "Exclude" is the longest label
+	field("Mode", mode)
+	field("Root", p.opts.Root)
+	field("Keep", p.opts.Keep.String())
+	if len(p.opts.Exclude) > 0 {
+		field("Exclude", strings.Join(p.opts.Exclude, ", "))
+	}
+	field("Fetch", fetch)
 	if p.opts.GC {
-		fmt.Fprintf(p.w, "  GC     %s\n", p.verb("git gc after cleanup (deleted branches may become unrecoverable)",
-			"skipped in dry-run"))
+		field("GC", p.verb("git gc after cleanup (deleted branches may become unrecoverable)", "skipped in dry-run"))
 	}
 	fmt.Fprintln(p.w, "\nScanning...")
 }
 
-// ScanResult prints the outcome of the repository discovery.
-func (p *Printer) ScanResult(count int, warnings []string) {
-	for _, w := range warnings {
+// ScanResult prints the outcome of the repository discovery. The scan is over
+// before any repository is processed, so exclusions and the patterns that
+// matched nothing are always reported first.
+func (p *Printer) ScanResult(s *Scan) {
+	for _, w := range s.Warnings {
 		fmt.Fprintf(p.w, "%s %s\n", p.paint(yellow, "warning"), w)
 	}
-	if count == 0 {
-		fmt.Fprintln(p.w, "No Git repository found.")
-		return
+	if len(s.Excluded) > 0 {
+		names := make([]string, len(s.Excluded))
+		for i, dir := range s.Excluded {
+			names[i] = p.displayPath(dir)
+		}
+		fmt.Fprintf(p.w, "%s %s\n", p.paint(cyan, "excluded"), strings.Join(names, ", "))
 	}
-	fmt.Fprintf(p.w, "Found %d Git %s.\n\n", count, plural(count, "repository", "repositories"))
+	for _, pattern := range s.Unmatched {
+		fmt.Fprintf(p.w, "%s --exclude pattern \"%s\" matched no folder (patterns are case-sensitive and relative to the root)\n",
+			p.paint(yellow, "warning"), pattern)
+	}
+	excluded := len(s.Excluded)
+	switch {
+	case len(s.Repos) > 0:
+		fmt.Fprintf(p.w, "Found %d Git %s.\n\n", len(s.Repos), plural(len(s.Repos), "repository", "repositories"))
+	case len(p.opts.Exclude) == 0:
+		fmt.Fprintln(p.w, "No Git repository found.")
+	case excluded == 0:
+		fmt.Fprintln(p.w, "No Git repository found (no folder excluded).")
+	default:
+		fmt.Fprintf(p.w, "No Git repository found outside the %d excluded %s.\n", excluded, plural(excluded, "folder", "folders"))
+	}
 }
 
 // Repo prints the result of one repository; index is 1-based.
@@ -139,6 +161,7 @@ func (p *Printer) displayPath(path string) string {
 // Summary aggregates the results of all repositories.
 type Summary struct {
 	Repos, ReposWithErrors int
+	Excluded               int // folders skipped because of --exclude
 	Pruned, Deleted, Kept  int
 	CheckedOut, Unpushed   int // branches skipped, by reason
 	Failed                 int // branches whose check or deletion failed
@@ -196,6 +219,9 @@ func (p *Printer) Summary(s *Summary) {
 	row := func(label, value string) { fmt.Fprintf(p.w, "  %-32s %s\n", label, value) }
 
 	row("Repositories scanned", strconv.Itoa(s.Repos))
+	if len(p.opts.Exclude) > 0 {
+		row("Folders excluded", strconv.Itoa(s.Excluded))
+	}
 	if !p.opts.NoFetch {
 		row(p.verb("Remote-tracking refs pruned", "Remote-tracking refs to prune"), strconv.Itoa(s.Pruned))
 	}

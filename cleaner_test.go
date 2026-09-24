@@ -5,9 +5,13 @@ package main
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -287,4 +291,83 @@ func TestRunEndToEnd(t *testing.T) {
 	}
 	assertStrings(t, "remaining branches", localBranches(t, work),
 		[]string{"develop", "feature-b", "feature-c", "feature-e", "feature-f", "fix", "main"})
+}
+
+// A clone under personal/portfolio, next to the fixture, holds a branch that
+// would be deleted and a remote-tracking branch that would be pruned:
+// excluding it must leave it untouched, in dry-run mode as in a real run.
+func TestRunWithExclusions(t *testing.T) {
+	root, work := fixture(t)
+	portfolio := filepath.Join(root, "personal", "portfolio")
+	gitT(t, root, "clone", "-q", "-b", "main", filepath.Join(root, "remote.git"), portfolio)
+	gitT(t, portfolio, "branch", "feature-x", "origin/main")             // pushed: deletable
+	gitT(t, portfolio, "update-ref", "refs/remotes/origin/gone", "HEAD") // not on the remote: prunable
+	fetchHead := filepath.Join(portfolio, ".git", "FETCH_HEAD")
+	os.Remove(fetchHead)
+	before := gitT(t, portfolio, "for-each-ref")
+	shown := filepath.Join("personal", "portfolio") // the output uses OS-native separators
+
+	var out, errOut bytes.Buffer
+	runOK := func(args ...string) string {
+		t.Helper()
+		out.Reset()
+		errOut.Reset()
+		if code := run(args, &out, &errOut); code != exitOK {
+			t.Fatalf("run %q: exit code %d\nstdout:\n%s\nstderr:\n%s", args, code, &out, &errOut)
+		}
+		return out.String()
+	}
+	contains := func(got string, want ...string) {
+		t.Helper()
+		for _, w := range want {
+			if !strings.Contains(got, w) {
+				t.Errorf("output lacks %q:\n%s", w, got)
+			}
+		}
+	}
+
+	// Dry run: reported as excluded, none of its branches mentioned.
+	got := runOK("--dry-run", "--exclude", "personal/portfolio", root)
+	contains(got, "Exclude personal/portfolio", "excluded "+shown, "would delete feature-d")
+	if !regexp.MustCompile(`Folders excluded +1\n`).MatchString(got) {
+		t.Errorf("summary lacks 1 excluded folder:\n%s", got)
+	}
+	if strings.Contains(got, "feature-x") || strings.Contains(got, "origin/gone") {
+		t.Errorf("dry run mentions a branch of the excluded clone:\n%s", got)
+	}
+
+	// A pattern that matches nothing is reported before the first repository.
+	got = runOK("--dry-run", "--exclude", "Nope", root)
+	warn := strings.Index(got, `--exclude pattern "Nope" matched no folder`)
+	if first := strings.Index(got, "[1/"); warn < 0 || first < warn {
+		t.Errorf("no warning before the first repository:\n%s", got)
+	}
+	if !regexp.MustCompile(`Folders excluded +0\n`).MatchString(got) {
+		t.Errorf("summary lacks 0 excluded folders:\n%s", got)
+	}
+
+	// Everything excluded: nothing is processed, the exclusions are counted.
+	entries, err := os.ReadDir(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	folders := 0
+	for _, e := range entries {
+		if e.IsDir() {
+			folders++
+		}
+	}
+	got = runOK("--exclude", "*", root)
+	contains(got, fmt.Sprintf("No Git repository found outside the %d excluded folders.", folders))
+
+	// Real run: the clone keeps every reference and is not even fetched.
+	got = runOK("--exclude", "personal/portfolio", root)
+	contains(got, "deleted      feature-d")
+	if after := gitT(t, portfolio, "for-each-ref"); after != before {
+		t.Errorf("the excluded clone was modified:\nbefore:\n%s\nafter:\n%s", before, after)
+	}
+	if _, err := os.Stat(fetchHead); !errors.Is(err, fs.ErrNotExist) {
+		t.Errorf("the excluded clone was fetched (FETCH_HEAD: %v)", err)
+	}
+	gitT(t, work, "rev-parse", "--verify", "--quiet", "refs/heads/feature-b") // unpushed work still kept
 }

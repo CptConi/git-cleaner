@@ -14,10 +14,10 @@
 
 ## 3. Reporting
 
-- [ ] 3.1 Header: `Exclude` line listing the patterns, labels padded to the longest one
-- [ ] 3.2 `Printer.ScanResult`: excluded folders with OS-native separators, then one warning per pattern that matched no folder
-- [ ] 3.3 Summary: "Folders excluded" row whenever `--exclude` is given; "No Git repository found outside the N excluded folders." when nothing is left
-- [ ] 3.4 End-to-end tests: real run next to an excluded clone holding deletable branches and stale remote-tracking branches (references unchanged, no `.git/FETCH_HEAD` created), dry-run output not mentioning its branches, unmatched pattern warning printed before the first repository, everything excluded
+- [x] 3.1 Header: `Exclude` line listing the patterns, labels padded to the longest one
+- [x] 3.2 `Printer.ScanResult`: excluded folders with OS-native separators, then one warning per pattern that matched no folder
+- [x] 3.3 Summary: "Folders excluded" row whenever `--exclude` is given; "No Git repository found outside the N excluded folders." when nothing is left
+- [x] 3.4 End-to-end tests: real run next to an excluded clone holding deletable branches and stale remote-tracking branches (references unchanged, no `.git/FETCH_HEAD` created), dry-run output not mentioning its branches, unmatched pattern warning printed before the first repository, everything excluded
 
 ## 4. Documentation
 
