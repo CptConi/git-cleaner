@@ -1,17 +1,18 @@
 ## Why
 
-The repository follows a strict commit convention: one single line `<type> (<feature>) <changes>` and never a
-`Co-Authored-By` trailer. It is only enforced by discipline today, so a multi-line message or an automatic
-trailer can slip into `dev` and, from there, into `main`.
+The repository follows a strict commit convention: one single line `<type> (<feature>) <changes>` and never a `Co-Authored-By` trailer. It is only enforced by discipline today, so a multi-line message or an automatic trailer can slip into `dev` and, from there, into `main`.
 
 ## What Changes
 
-- A versioned `commit-msg` hook (`.githooks/commit-msg`) rejects a non-compliant message before the commit is
-  created, once enabled with `git config core.hooksPath .githooks`.
-- A CI job checks every commit a push or a pull request introduces, and becomes part of the `tests passed`
-  check that the `dev` and `main` rulesets require.
-- Both rely on a single POSIX shell checker, so the rule is defined once.
-- The convention is documented in the README (Contributing).
+- A POSIX shell checker (`scripts/check-commit-msg.sh`) defines the rule once. In CI it validates raw commit messages. In the hook it first cleans the message the way git does (comments, scissors line of `git commit -v`) and tolerates `fixup!`, `squash!` and `amend!` commits, which must be squashed before pushing.
+- A versioned `commit-msg` hook (`.githooks/commit-msg`) rejects a non-compliant message before the commit is created, once enabled with `git config core.hooksPath .githooks`.
+- A CI job `commit-messages` checks every commit that the tested revision would bring to its target branch, merge commits included:
+  - feature branches: commits that are not on `dev`;
+  - pushes to `dev`: commits that are not on `main`;
+  - pull requests: their commits, plus the title of pull requests into `main`, which becomes the merge commit message.
+- Only runs triggered by Dependabot on its own pull requests are exempted. A versioned allowlist of commit SHAs provides a recovery path, since `dev` forbids force pushes.
+- The `tests passed` check requires every job it aggregates to succeed, so the new job blocks the way to `dev` and `main` through the existing rulesets.
+- Repository setting: merge commits default to the pull request title, so merging `dev` into `main` produces a compliant single-line message.
 
 ## Capabilities
 
@@ -23,9 +24,17 @@ trailer can slip into `dev` and, from there, into `main`.
 
 ## Impact
 
-- New files: `scripts/check-commit-msg.sh`, `.githooks/commit-msg`.
-- `.github/workflows/ci.yml`: new `commit-messages` job (full history checkout), added to the needs of
-  `tests-passed`.
-- `README.md`: Contributing section (format, allowed types, hook activation).
+- New files:
+  - `scripts/check-commit-msg.sh` and its test script `scripts/check-commit-msg_test.sh`;
+  - `.githooks/commit-msg`;
+  - `.gitattributes` (LF endings for the scripts and the hook);
+  - `.github/commit-check-allowlist`.
+- `.github/workflows/ci.yml`:
+  - `commit-messages` job and script tests on the OS matrix;
+  - generic success check in `tests-passed`;
+  - `edited` pull request type.
+- Repository settings (maintainer): default message of merge commits = pull request title.
+- `README.md` Contributing section: format, allowed types, hook, reverts, merges into `main`. The sentence describing `tests passed` as "the whole CI matrix" also changes.
+- `openspec/config.yaml` conventions: allowed types.
 - No change to the Go code.
-- Coupling with the `dependabot-actions` change: bot commits need an exemption or a squash merge.
+- Coordinated with `dependabot-actions` (exemption by event, squash commits checked) and `govulncheck-ci` (same generic `tests-passed` check).
