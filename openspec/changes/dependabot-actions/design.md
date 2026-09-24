@@ -31,7 +31,7 @@ The workflows (`ci.yml`, `branch-policy.yml`, `release.yml`) use three actions p
 - [The maintainer merges a Dependabot pull request with a merge commit] → the commit message check of the push to `dev` fails and flags it; the procedure is in the README.
 - [A new major version changes inputs and breaks a workflow] → CI and, for the release pipeline, the snapshot check run on the update pull request before anything reaches `dev`.
 - [A security fix of an action is only picked up at the next monthly run or patch tag] → Dependabot alerts notify the maintainer, who can bump it manually through a feature branch.
-- [GoReleaser needs a secret in snapshot mode once the `homebrew-tap` change lands] → the snapshot job sets a placeholder value for `HOMEBREW_TAP_TOKEN`, since nothing is published.
+- [GoReleaser needs a secret in snapshot mode once the `homebrew-tap` change lands] → the snapshot job sets a placeholder value for `HOMEBREW_TAP_DEPLOY_KEY`, since nothing is published.
 
 ## Migration Plan
 
