@@ -14,10 +14,18 @@ var skipDirs = map[string]bool{
 
 // Scan is the outcome of the repository discovery.
 type Scan struct {
-	Repos     []string // repositories, in lexical order
-	Excluded  []string // folders skipped because they match an --exclude pattern
-	Unmatched []string // --exclude patterns that matched no folder
-	Warnings  []string // folders that could not be read
+	Repos     []string         // repositories, in lexical order
+	Excluded  []string         // folders skipped because they match an --exclude pattern
+	Unmatched []string         // --exclude patterns that matched no folder
+	Covered   []CoveredPattern // --exclude patterns redundant with an excluded folder
+	Warnings  []string         // folders that could not be read
+}
+
+// CoveredPattern is an --exclude pattern that matched nothing because it
+// could only match inside a folder that another pattern already excluded.
+type CoveredPattern struct {
+	Pattern string // e.g. "acme/web"
+	Folder  string // slash-separated path of the excluded folder, e.g. "acme"
 }
 
 // FindRepositories walks root recursively and returns, in lexical order,
@@ -38,6 +46,7 @@ type Scan struct {
 func FindRepositories(root string, exclude ExcludeList) (*Scan, error) {
 	scan := &Scan{}
 	used := make(map[string]bool)
+	var excludedRels []string // slash-separated paths of scan.Excluded
 	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			if path == root {
@@ -54,11 +63,13 @@ func FindRepositories(root string, exclude ExcludeList) (*Scan, error) {
 				return filepath.SkipDir
 			}
 			if rel, err := filepath.Rel(root, path); err == nil {
-				if patterns := exclude.Match(filepath.ToSlash(rel)); len(patterns) > 0 {
+				rel = filepath.ToSlash(rel)
+				if patterns := exclude.Match(rel); len(patterns) > 0 {
 					for _, p := range patterns {
 						used[p] = true
 					}
 					scan.Excluded = append(scan.Excluded, path)
+					excludedRels = append(excludedRels, rel)
 					return filepath.SkipDir
 				}
 			}
@@ -73,7 +84,11 @@ func FindRepositories(root string, exclude ExcludeList) (*Scan, error) {
 		return filepath.SkipDir
 	})
 	for _, p := range exclude {
-		if !used[p] {
+		switch folder, covered := coveringFolder(p, excludedRels); {
+		case used[p]:
+		case covered:
+			scan.Covered = append(scan.Covered, CoveredPattern{Pattern: p, Folder: folder})
+		default:
 			scan.Unmatched = append(scan.Unmatched, p)
 		}
 	}

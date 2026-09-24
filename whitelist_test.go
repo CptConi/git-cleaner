@@ -12,6 +12,17 @@ func TestParseExcludes(t *testing.T) {
 	}
 	assertStrings(t, "normalized patterns", e, []string{"acme", "personal/portfolio", "clients/*"})
 
+	// Duplicates, once normalized, are dropped for both flags.
+	if e, err = ParseExcludes("acme, acme/ ,./acme,tools"); err != nil {
+		t.Fatal(err)
+	}
+	assertStrings(t, "deduplicated --exclude", e, []string{"acme", "tools"})
+	w, err := ParseWhitelist("main,develop,main")
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertStrings(t, "deduplicated --keep", w, []string{"main", "develop"})
+
 	for _, raw := range []string{
 		"[oops",              // malformed glob
 		"/Users/me/acme",     // absolute path, e.g. an expanded ~/Projects/acme
@@ -24,6 +35,24 @@ func TestParseExcludes(t *testing.T) {
 		_, err := ParseExcludes("ok," + raw)
 		if err == nil || !strings.Contains(err.Error(), "--exclude") || !strings.Contains(err.Error(), raw) {
 			t.Errorf("ParseExcludes(%q) = %v, want an error naming --exclude and the pattern", raw, err)
+		}
+	}
+}
+
+func TestCoveringFolder(t *testing.T) {
+	excluded := []string{"acme", "personal/portfolio"}
+	for pattern, want := range map[string]string{
+		"acme/web":                "acme",
+		"acme/*":                  "acme",
+		"*/web":                   "acme", // only candidates inside acme remain
+		"personal/portfolio/site": "personal/portfolio",
+		"personal/blog":           "", // sibling of an excluded folder: really unmatched
+		"acme":                    "", // same depth: not covered, it would have matched
+		"tools":                   "",
+	} {
+		got, ok := coveringFolder(pattern, excluded)
+		if got != want || ok != (want != "") {
+			t.Errorf("coveringFolder(%q) = %q, %v; want %q", pattern, got, ok, want)
 		}
 	}
 }

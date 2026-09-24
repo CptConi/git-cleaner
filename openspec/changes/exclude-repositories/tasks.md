@@ -18,6 +18,7 @@
 - [x] 3.2 `Printer.ScanResult`: excluded folders with OS-native separators, then one warning per pattern that matched no folder
 - [x] 3.3 Summary: "Folders excluded" row whenever `--exclude` is given; "No Git repository found outside the N excluded folders." when nothing is left
 - [x] 3.4 End-to-end tests: real run next to an excluded clone holding deletable branches and stale remote-tracking branches (references unchanged, no `.git/FETCH_HEAD` created), dry-run output not mentioning its branches, unmatched pattern warning printed before the first repository, everything excluded
+- [x] 3.5 Deduplicate patterns, and report a pattern covered by an already excluded folder as such instead of "matched no folder" (found in the code review), with tests
 
 ## 4. Documentation
 

@@ -130,6 +130,23 @@ func TestFindRepositoriesWithExclusions(t *testing.T) {
 	assertStrings(t, "unmatched", scan.Unmatched, []string{"*", "?", "."})
 }
 
+// A pattern that could only match inside an excluded folder is reported as
+// covered by it, not as matching nothing.
+func TestFindRepositoriesCoveredPatterns(t *testing.T) {
+	root := t.TempDir()
+	mkdirs(t, root, "acme/web/app/.git", "tools/.git")
+
+	scan, err := FindRepositories(root, ExcludeList{"acme", "acme/web", "nope"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertStrings(t, "excluded", scan.Excluded, under(root, "acme"))
+	assertStrings(t, "unmatched", scan.Unmatched, []string{"nope"})
+	if want := []CoveredPattern{{Pattern: "acme/web", Folder: "acme"}}; len(scan.Covered) != 1 || scan.Covered[0] != want[0] {
+		t.Errorf("covered = %+v, want %+v", scan.Covered, want)
+	}
+}
+
 // An excluded folder is not even read: no warning for what it contains.
 func TestFindRepositoriesDoesNotWalkExcludedFolders(t *testing.T) {
 	if !canTestPermissions() {

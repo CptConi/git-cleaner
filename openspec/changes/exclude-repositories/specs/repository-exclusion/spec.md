@@ -59,7 +59,7 @@ The CLI SHALL NOT walk an excluded folder, nor fetch, prune or delete anything i
 - **THEN** no warning is printed about that sub-folder
 
 ### Requirement: Exclusions are reported
-The CLI SHALL list the `--exclude` patterns in the run header and the excluded folders after the scan. It SHALL warn, before processing any repository, about every pattern that matched no folder. Whenever `--exclude` is given, the final summary SHALL show the number of excluded folders, and a run left with no repository to process SHALL say how many folders were excluded.
+The CLI SHALL list the `--exclude` patterns in the run header and the excluded folders after the scan. It SHALL warn once, before processing any repository, about every distinct pattern that matched no folder, and SHALL report a pattern that could only match inside an already excluded folder as covered by that folder instead. Whenever `--exclude` is given, the final summary SHALL show the number of excluded folders, and a run left with no repository to process SHALL say how many folders were excluded.
 
 #### Scenario: Scan output with exclusions
 - **WHEN** a run excludes the folders `acme` and `personal/portfolio`
@@ -70,6 +70,15 @@ The CLI SHALL list the `--exclude` patterns in the run header and the excluded f
 - **WHEN** the user passes `--exclude 'Acme'` and the folder is called `acme`
 - **THEN** a warning saying that `Acme` matched no folder is printed before any repository is processed, and
   the summary reports 0 excluded folders
+
+#### Scenario: Pattern covered by an excluded folder
+- **WHEN** the user passes `--exclude 'acme,acme/web'`
+- **THEN** `acme` is excluded and a warning says that `acme/web` is already covered by the exclusion of `acme`,
+  instead of saying that it matched no folder
+
+#### Scenario: Duplicate patterns
+- **WHEN** the user passes `--exclude 'nope,nope'` and no folder is called `nope`
+- **THEN** a single warning is printed for `nope`
 
 #### Scenario: Everything excluded
 - **WHEN** every repository under the root is inside an excluded folder

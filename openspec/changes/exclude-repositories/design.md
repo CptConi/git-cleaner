@@ -52,6 +52,9 @@ repositories (`~/Projects/personal/portfolio`).
   - `Printer.ScanResult` prints `excluded  <folders>` with the same OS-native separators as repository
     paths, then a warning for each pattern that matched no folder. The scan completes before any repository
     is processed, so these lines always come first.
+  - Patterns are deduplicated at parse time, and a pattern that could only match inside an already excluded
+    folder (`acme/web` next to `acme`) gets an "already covered by the exclusion of acme" warning instead:
+    it is redundant, not wrong.
   - The summary gains a "Folders excluded" row, printed whenever `--exclude` was given, even at 0. It counts
     matched folders, including ones that hold no repository: nested repositories are not walked, so they
     cannot be counted.

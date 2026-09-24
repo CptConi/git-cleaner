@@ -346,6 +346,14 @@ func TestRunWithExclusions(t *testing.T) {
 		t.Errorf("summary lacks 0 excluded folders:\n%s", got)
 	}
 
+	// A pattern made redundant by an excluded parent folder is reported as such,
+	// once even if repeated.
+	got = runOK("--dry-run", "--exclude", "personal", "--exclude", "personal/portfolio,personal/portfolio", root)
+	covered := `--exclude pattern "personal/portfolio" is already covered by the exclusion of personal`
+	if strings.Count(got, covered) != 1 || strings.Contains(got, `"personal/portfolio" matched no folder`) {
+		t.Errorf("want exactly one %q warning:\n%s", covered, got)
+	}
+
 	// Everything excluded: nothing is processed, the exclusions are counted.
 	entries, err := os.ReadDir(root)
 	if err != nil {

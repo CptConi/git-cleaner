@@ -87,6 +87,10 @@ func (p *Printer) ScanResult(s *Scan) {
 		}
 		fmt.Fprintf(p.w, "%s %s\n", p.paint(cyan, "excluded"), strings.Join(names, ", "))
 	}
+	for _, c := range s.Covered {
+		fmt.Fprintf(p.w, "%s --exclude pattern \"%s\" is already covered by the exclusion of %s\n",
+			p.paint(yellow, "warning"), c.Pattern, filepath.FromSlash(c.Folder))
+	}
 	for _, pattern := range s.Unmatched {
 		fmt.Fprintf(p.w, "%s --exclude pattern \"%s\" matched no folder (patterns are case-sensitive and relative to the root)\n",
 			p.paint(yellow, "warning"), pattern)
