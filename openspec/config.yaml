@@ -1,0 +1,50 @@
+schema: spec-driven
+
+context: |
+  git-cleaner - cross-platform CLI (macOS, Linux, Windows) that frees disk space and declutters a workstation.
+  It walks a root folder, finds every Git repository, prunes the remote-tracking branches deleted on the remote
+  (git fetch --all --prune), then force-deletes (git branch -D) the local branches that are outside a keep list
+  AND whose commits are all on a remote. Public repository github.com/CptConi/git-cleaner, MIT license.
+
+  ## Stack
+  - Go, module github.com/CptConi/git-cleaner. go.mod declares 1.22 (oldest supported); CI also runs the latest stable.
+  - Standard library only: no third-party dependency in the binary.
+  - Drives the git executable (os/exec), never a Go Git library, so that credential helpers, SSH configuration,
+    proxies and hooks keep working. Git >= 2.23 required, >= 2.31 for the disk space estimate.
+  - Single package main: main.go (CLI flags, orchestration, parallel workers with ordered output), scan.go
+    (repository discovery), cleaner.go (per-repository pipeline: prune, sort, delete, estimate, gc), git.go (git
+    execution, environment, timeouts, git commands), whitelist.go (--keep and --exclude patterns), report.go and banner.go (output),
+    platform_unix.go / platform_windows.go (terminal colors, file disk usage).
+
+  ## Behavior invariants (every change must preserve them)
+  - Branches on the remotes are never modified: nothing is ever pushed.
+  - --dry-run writes nothing; it may only query remotes (git remote prune --dry-run).
+  - A local branch is deleted only when every one of its commits is on a remote-tracking branch that survives the
+    prune. Branches checked out in a worktree (HEAD) are never deleted.
+  - A failure in one repository or branch never stops the run: it is reported and the exit status becomes 1
+    (2 = invalid usage).
+  - git runs non-interactively: GIT_TERMINAL_PROMPT=0, GCM_INTERACTIVE=never (unless the user set it), LC_ALL=C,
+    repository-location variables (GIT_DIR, GIT_WORK_TREE...) removed, timeouts on network operations.
+  - Plain output when stdout is not a terminal; banner and colors only on interactive terminals
+    (NO_COLOR, --no-color and FORCE_COLOR honored). Only WGL4 characters, so that Windows consoles render them.
+
+  ## Quality bar
+  - Integration tests drive the real git on temporary repositories (fixture in cleaner_test.go). Every behavior
+    change comes with tests.
+  - CI (GitHub Actions): ubuntu/macos/windows x Go 1.22/stable, gofmt, go vet, go test (-race except on Windows).
+    The aggregated "tests passed" check is required by the rulesets of dev and main; pull requests into main must
+    come from dev ("source is dev" check).
+  - Releases: GoReleaser on v* tags (darwin/linux/windows x amd64/arm64 archives + checksums).
+
+  ## Conventions
+  - Language: code, comments, commit messages and all OpenSpec artifacts in ENGLISH. Conversational replies to
+    the maintainer in French.
+  - Git flow: main only receives merges from dev through a pull request; dev is the integration branch; one branch
+    per feature (feature/<name>) created from dev and merged into dev (fast-forward) once the maintainer validated it.
+  - Commit messages: one single line "<type> (<feature>) <comma-separated changes>", for instance
+    "feat (exclude-repositories) add --exclude flag, wording for help". NO Co-Authored-By trailer.
+
+rules:
+  tasks:
+    - Include the tests to add or update, and the README / --help updates whenever user-facing behavior changes
+    - End with verification tasks (gofmt, go vet for every target OS, go test; plus a dry run on a sample tree when the Go code changes)

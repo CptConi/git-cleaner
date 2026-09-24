@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (${{ matrix.os }}, Go ${{ matrix.go }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        go: ["1.22", stable] # oldest supported version and latest release
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version: ${{ matrix.go }}
+          cache: false # no dependencies to cache
+
+      - name: Check formatting
+        if: runner.os == 'Linux' && matrix.go == 'stable'
+        run: test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
+
+      - name: Vet
+        run: go vet ./...
+
+      # The integration tests drive the git executable of the runner. The race
+      # detector needs cgo, which the Windows runners do not provide by default.
+      - name: Test
+        run: go test ${{ runner.os != 'Windows' && '-race' || '' }} ./...
+
+  # Single status to require in the branch rulesets (.github/rulesets), instead
+  # of the six matrix jobs. "always()" makes it fail, rather than be skipped
+  # (which would count as a success), when a test job fails.
+  tests-passed:
+    name: tests passed
+    needs: test
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the test matrix
+        env:
+          RESULT: ${{ needs.test.result }}
+        run: test "$RESULT" = success

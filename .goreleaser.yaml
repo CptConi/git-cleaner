@@ -1,0 +1,28 @@
+# GoReleaser configuration, used by .github/workflows/release.yml when a
+# version tag (v1.2.3) is pushed. Test it locally with:
+#   goreleaser release --snapshot --clean
+version: 2
+
+project_name: git-cleaner
+
+builds:
+  - env:
+      - CGO_ENABLED=0 # static binaries, no system library needed
+    goos: [darwin, linux, windows]
+    goarch: [amd64, arm64]
+    flags: [-trimpath]
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+
+archives:
+  - formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
