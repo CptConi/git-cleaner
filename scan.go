@@ -12,6 +12,14 @@ var skipDirs = map[string]bool{
 	"node_modules": true,
 }
 
+// Scan is the outcome of the repository discovery.
+type Scan struct {
+	Repos     []string // repositories, in lexical order
+	Excluded  []string // folders skipped because they match an --exclude pattern
+	Unmatched []string // --exclude patterns that matched no folder
+	Warnings  []string // folders that could not be read
+}
+
 // FindRepositories walks root recursively and returns, in lexical order,
 // every directory that contains a ".git" sub-directory.
 //
@@ -22,30 +30,52 @@ var skipDirs = map[string]bool{
 // their branches belong to the main repository, which is processed on its
 // own. Symbolic links are not followed.
 //
+// Below the root, a folder whose slash-separated relative path matches an
+// exclude pattern is recorded and skipped with its whole subtree, which is
+// never read. The root itself is never excluded.
+//
 // Unreadable directories do not stop the scan: they are returned as warnings.
-func FindRepositories(root string) (repos, warnings []string, err error) {
-	err = filepath.WalkDir(root, func(path string, d fs.DirEntry, walkErr error) error {
+func FindRepositories(root string, exclude ExcludeList) (*Scan, error) {
+	scan := &Scan{}
+	used := make(map[string]bool)
+	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			if path == root {
 				return walkErr // nothing can be scanned at all
 			}
-			warnings = append(warnings, walkErr.Error())
+			scan.Warnings = append(scan.Warnings, walkErr.Error())
 			return nil // carry on with the rest of the tree
 		}
 		if !d.IsDir() {
 			return nil
 		}
-		if path != root && skipDirs[d.Name()] {
-			return filepath.SkipDir
+		if path != root {
+			if skipDirs[d.Name()] {
+				return filepath.SkipDir
+			}
+			if rel, err := filepath.Rel(root, path); err == nil {
+				if patterns := exclude.Match(filepath.ToSlash(rel)); len(patterns) > 0 {
+					for _, p := range patterns {
+						used[p] = true
+					}
+					scan.Excluded = append(scan.Excluded, path)
+					return filepath.SkipDir
+				}
+			}
 		}
 		info, statErr := os.Stat(filepath.Join(path, ".git"))
 		if statErr != nil {
 			return nil // not a Git working tree: look deeper
 		}
 		if info.IsDir() {
-			repos = append(repos, path)
+			scan.Repos = append(scan.Repos, path)
 		}
 		return filepath.SkipDir
 	})
-	return repos, warnings, err
+	for _, p := range exclude {
+		if !used[p] {
+			scan.Unmatched = append(scan.Unmatched, p)
+		}
+	}
+	return scan, err
 }

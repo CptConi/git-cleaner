@@ -105,12 +105,13 @@ func run(args []string, stdout, stderr io.Writer) int {
 
 	// Step 1: find the repositories.
 	out.Header()
-	repos, warnings, err := FindRepositories(opts.Root)
+	scan, err := FindRepositories(opts.Root, opts.Exclude)
 	if err != nil {
 		fmt.Fprintf(stderr, "git-cleaner: cannot scan %s: %v\n", opts.Root, err)
 		return exitUsage
 	}
-	out.ScanResult(len(repos), warnings)
+	out.ScanResult(len(scan.Repos), scan.Warnings)
+	repos := scan.Repos
 	if len(repos) == 0 {
 		return exitOK
 	}

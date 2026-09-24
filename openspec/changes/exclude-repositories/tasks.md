@@ -8,9 +8,9 @@
 
 ## 2. Discovery
 
-- [ ] 2.1 Make `FindRepositories` take the exclusion patterns; below the root, check `skipDirs`, then the slash-separated relative path against the patterns (record the folder, return `filepath.SkipDir`), then `.git`
-- [ ] 2.2 Return the excluded folders along with repositories and warnings; update the caller in `run`
-- [ ] 2.3 Tests in `scan_test.go`: excluded parent folder with nested repositories, wildcard pattern, single repository, case-sensitive matching, pattern anchored at the root, the root never matched (`*`, `?`, `.`), an unreadable folder inside an excluded one producing no warning, relative paths built with `/` on Windows
+- [x] 2.1 Make `FindRepositories` take the exclusion patterns; below the root, check `skipDirs`, then the slash-separated relative path against the patterns (record the folder, return `filepath.SkipDir`), then `.git`
+- [x] 2.2 Return the excluded folders along with repositories and warnings; update the caller in `run`
+- [x] 2.3 Tests in `scan_test.go`: excluded parent folder with nested repositories, wildcard pattern, single repository, case-sensitive matching, pattern anchored at the root, the root never matched (`*`, `?`, `.`), an unreadable folder inside an excluded one producing no warning, relative paths built with `/` on Windows
 
 ## 3. Reporting
 

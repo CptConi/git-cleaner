@@ -29,19 +29,16 @@ func TestParseExcludes(t *testing.T) {
 }
 
 func TestExcludeListMatch(t *testing.T) {
-	e := ExcludeList{"acme", "personal/*"}
-	for rel, want := range map[string]string{
-		"acme":               "acme",
-		"acme/web":           "", // only the folder itself: the walk skips its subtree
-		"personal/portfolio": "personal/*",
-		"personal":           "",
-		"Acme":               "", // case-sensitive
-		"clients/acme":       "", // anchored at the root
+	e := ExcludeList{"acme", "personal/*", "personal/portfolio"}
+	for rel, want := range map[string][]string{
+		"acme":               {"acme"},
+		"acme/web":           nil, // only the folder itself: the walk skips its subtree
+		"personal/portfolio": {"personal/*", "personal/portfolio"},
+		"personal":           nil,
+		"Acme":               nil, // case-sensitive
+		"clients/acme":       nil, // anchored at the root
 	} {
-		got, ok := e.Match(rel)
-		if got != want || ok != (want != "") {
-			t.Errorf("Match(%q) = %q, %v; want %q", rel, got, ok, want)
-		}
+		assertStrings(t, "Match("+rel+")", e.Match(rel), want)
 	}
 }
 

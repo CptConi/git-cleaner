@@ -54,15 +54,17 @@ func ParseExcludes(list string) (ExcludeList, error) {
 	return ExcludeList(patterns), err
 }
 
-// Match returns the first pattern that matches rel, the slash-separated path
-// of a folder relative to the scanned root.
-func (e ExcludeList) Match(rel string) (pattern string, ok bool) {
+// Match returns the patterns that match rel, the slash-separated path of a
+// folder relative to the scanned root (all of them, so that none is later
+// reported as matching nothing).
+func (e ExcludeList) Match(rel string) []string {
+	var matched []string
 	for _, p := range e {
-		if matched, _ := path.Match(p, rel); matched {
-			return p, true
+		if ok, _ := path.Match(p, rel); ok {
+			matched = append(matched, p)
 		}
 	}
-	return "", false
+	return matched
 }
 
 // drivePrefix matches Windows drive letters such as "C:" or "c:".
