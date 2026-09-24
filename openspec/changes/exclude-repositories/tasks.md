@@ -27,7 +27,7 @@
 
 ## 5. Verification
 
-- [ ] 5.1 `gofmt -l .` is empty and `go vet ./...` passes for linux, darwin and windows
-- [ ] 5.2 `go test -race ./...` passes
-- [ ] 5.3 Dry run on a temporary sample tree with nested repositories: `--exclude` of a parent folder, of a single repository, and of a pattern matching nothing behave as specified
-- [ ] 5.4 Dry run on the maintainer's `~/Projects` with `--exclude 'acme,personal/portfolio'`: both folders are listed as excluded and no branch of theirs appears in the output
+- [x] 5.1 `gofmt -l .` is empty and `go vet ./...` passes for linux, darwin and windows
+- [x] 5.2 `go test -race ./...` passes
+- [x] 5.3 Dry run on a temporary sample tree with nested repositories: `--exclude` of a parent folder, of a single repository, and of a pattern matching nothing behave as specified
+- [x] 5.4 Dry run on the maintainer's `~/Projects` with `--exclude 'acme,personal/portfolio'`: both folders are listed as excluded and no branch of theirs appears in the output
