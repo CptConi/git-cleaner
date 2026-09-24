@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -56,10 +55,16 @@ func gitT(t *testing.T, dir string, args ...string) string {
 //	work/        repository with the local branches:
 //	    main       whitelisted
 //	    develop    whitelisted
-//	    feature-a  pushed, merged into main, then deleted on the remote
-//	    feature-b  never pushed: holds one commit found nowhere else
-//	    feature-c  checked out in the wt/ worktree
-//	    fix        checked out in work/ (HEAD)
+//	    feature-a  pushed, merged into main, deleted on the remote  -> deleted
+//	    feature-b  never pushed                                     -> kept
+//	    feature-c  checked out in the wt/ worktree                  -> skipped
+//	    feature-d  pushed, still on the remote                      -> deleted
+//	    feature-e  pushed, then one more local commit               -> kept
+//	    feature-f  pushed, deleted on the remote without a merge    -> kept
+//	    fix        checked out in work/ (HEAD)                      -> skipped
+//
+// origin/feature-g is also left behind by a branch that was pushed, deleted
+// locally, then deleted on the remote: pruning it frees its commit.
 func fixture(t *testing.T) (root, work string) {
 	t.Helper()
 	isolateGit(t)
@@ -73,6 +78,12 @@ func fixture(t *testing.T) (root, work string) {
 		gitT(t, work, "add", file)
 		gitT(t, work, "commit", "-q", "-m", "add "+file)
 	}
+	branch := func(name string, files ...string) {
+		gitT(t, work, "switch", "-q", "-c", name, "main")
+		for _, f := range files {
+			commit(f)
+		}
+	}
 
 	gitT(t, root, "init", "-q", "--bare", remote)
 	gitT(t, root, "init", "-q", work)
@@ -81,17 +92,32 @@ func fixture(t *testing.T) (root, work string) {
 	commit("a")
 	gitT(t, work, "push", "-q", "origin", "main")
 
-	gitT(t, work, "switch", "-q", "-c", "feature-a")
-	commit("b")
+	branch("feature-a", "b")
 	gitT(t, work, "push", "-q", "origin", "feature-a")
 	gitT(t, work, "switch", "-q", "main")
 	gitT(t, work, "merge", "-q", "--ff-only", "feature-a")
 	gitT(t, work, "push", "-q", "origin", "main")
-	gitT(t, remote, "branch", "-D", "feature-a") // deleted on the remote only
+	gitT(t, remote, "branch", "-D", "feature-a")
 
-	gitT(t, work, "switch", "-q", "-c", "feature-b")
-	commit("c")
+	branch("feature-b", "c")
+
+	branch("feature-d", "d")
+	gitT(t, work, "push", "-q", "origin", "feature-d")
+
+	branch("feature-e", "e1")
+	gitT(t, work, "push", "-q", "origin", "feature-e")
+	commit("e2")
+
+	branch("feature-f", "f")
+	gitT(t, work, "push", "-q", "origin", "feature-f")
+	gitT(t, remote, "branch", "-D", "feature-f")
+
+	branch("feature-g", "g")
+	gitT(t, work, "push", "-q", "origin", "feature-g")
 	gitT(t, work, "switch", "-q", "main")
+	gitT(t, work, "branch", "-q", "-D", "feature-g")
+	gitT(t, remote, "branch", "-D", "feature-g")
+
 	gitT(t, work, "branch", "develop")
 	gitT(t, work, "branch", "feature-c")
 	gitT(t, work, "worktree", "add", "-q", filepath.Join(root, "wt"), "feature-c")
@@ -120,10 +146,10 @@ func branchNames(branches []BranchInfo) []string {
 	return names
 }
 
-func skippedNames(skipped []SkippedBranch, failed bool) []string {
+func skippedNames(skipped []SkippedBranch, kind SkipKind) []string {
 	var names []string
 	for _, s := range skipped {
-		if s.Failed == failed {
+		if s.Kind == kind {
 			names = append(names, s.Name)
 		}
 	}
@@ -134,6 +160,10 @@ func localBranches(t *testing.T, repo string) []string {
 	return strings.Fields(gitT(t, repo, "for-each-ref", "--format=%(refname:short)", "refs/heads"))
 }
 
+func remoteBranches(t *testing.T, repo string) []string {
+	return strings.Fields(gitT(t, repo, "for-each-ref", "--format=%(refname:short)", "refs/remotes"))
+}
+
 // checkPlan verifies the decisions taken on the fixture, which are the same
 // in dry-run and real mode.
 func checkPlan(t *testing.T, c *Cleaner, res *RepoResult) {
@@ -141,18 +171,17 @@ func checkPlan(t *testing.T, c *Cleaner, res *RepoResult) {
 	if len(res.Errors) > 0 {
 		t.Fatalf("unexpected errors: %q", res.Errors)
 	}
-	assertStrings(t, "pruned", res.Pruned, []string{"origin/feature-a"})
-	assertStrings(t, "deleted", branchNames(res.Deleted), []string{"feature-a", "feature-b"})
+	assertStrings(t, "pruned", res.Pruned, []string{"origin/feature-a", "origin/feature-f", "origin/feature-g"})
+	assertStrings(t, "deleted", branchNames(res.Deleted), []string{"feature-a", "feature-d"})
 	assertStrings(t, "kept", res.Kept, []string{"develop", "main"})
-	assertStrings(t, "skipped", skippedNames(res.Skipped, false), []string{"feature-c", "fix"})
-	// feature-a was merged into main: nothing is lost with it. The commit of
-	// feature-b exists nowhere else.
-	if len(res.Deleted) == 2 {
-		if got := []int{res.Deleted[0].Unique, res.Deleted[1].Unique}; !slices.Equal(got, []int{0, 1}) {
-			t.Errorf("unique commits = %v, want [0 1]", got)
+	assertStrings(t, "kept as unpushed", skippedNames(res.Skipped, SkipUnpushed), []string{"feature-b", "feature-e", "feature-f"})
+	assertStrings(t, "checked out", skippedNames(res.Skipped, SkipCheckedOut), []string{"feature-c", "fix"})
+	for _, s := range res.Skipped {
+		if s.Kind == SkipUnpushed && s.Reason != "1 commit not on any remote" {
+			t.Errorf("%s: reason %q", s.Name, s.Reason)
 		}
 	}
-	if c.diskUsage && res.Reclaimable <= 0 {
+	if c.diskUsage && res.Reclaimable <= 0 { // the commit of origin/feature-g
 		t.Errorf("reclaimable = %d, want > 0", res.Reclaimable)
 	}
 }
@@ -167,17 +196,20 @@ func TestCleanDryRunChangesNothing(t *testing.T) {
 	}
 }
 
-func TestCleanDeletesAndPrunes(t *testing.T) {
+func TestCleanDeletesOnlyPushedBranches(t *testing.T) {
 	_, work := fixture(t)
 	c := newTestCleaner(t, false)
 	checkPlan(t, c, c.Clean(work))
-	assertStrings(t, "remaining branches", localBranches(t, work), []string{"develop", "feature-c", "fix", "main"})
-	assertStrings(t, "remaining remote-tracking refs",
-		strings.Fields(gitT(t, work, "for-each-ref", "--format=%(refname:short)", "refs/remotes")),
-		[]string{"origin/main"})
+	assertStrings(t, "remaining branches", localBranches(t, work),
+		[]string{"develop", "feature-b", "feature-c", "feature-e", "feature-f", "fix", "main"})
+	assertStrings(t, "remaining remote-tracking refs", remoteBranches(t, work),
+		[]string{"origin/feature-d", "origin/feature-e", "origin/main"})
 }
 
-func TestCleanNoFetchLeavesRemoteRefs(t *testing.T) {
+// Without fetching, git-cleaner trusts the remote-tracking branches of the
+// last fetch: origin/feature-f still exists locally, so feature-f counts as
+// pushed.
+func TestCleanNoFetchTrustsLastFetch(t *testing.T) {
 	_, work := fixture(t)
 	c := newTestCleaner(t, false)
 	c.opts.NoFetch = true
@@ -185,8 +217,9 @@ func TestCleanNoFetchLeavesRemoteRefs(t *testing.T) {
 	if len(res.Errors)+len(res.Pruned) > 0 {
 		t.Errorf("errors = %q, pruned = %q; want none", res.Errors, res.Pruned)
 	}
-	assertStrings(t, "deleted", branchNames(res.Deleted), []string{"feature-a", "feature-b"})
-	gitT(t, work, "rev-parse", "--verify", "--quiet", "refs/remotes/origin/feature-a")
+	assertStrings(t, "deleted", branchNames(res.Deleted), []string{"feature-a", "feature-d", "feature-f"})
+	assertStrings(t, "kept as unpushed", skippedNames(res.Skipped, SkipUnpushed), []string{"feature-b", "feature-e"})
+	gitT(t, work, "rev-parse", "--verify", "--quiet", "refs/remotes/origin/feature-f")
 }
 
 func TestCleanGoesOnAfterDeletionFailure(t *testing.T) {
@@ -200,9 +233,10 @@ func TestCleanGoesOnAfterDeletionFailure(t *testing.T) {
 		t.Fatal(err)
 	}
 	res := newTestCleaner(t, false).Clean(work)
-	assertStrings(t, "deleted", branchNames(res.Deleted), []string{"feature-b"})
-	assertStrings(t, "failed", skippedNames(res.Skipped, true), []string{"feature-a"})
-	assertStrings(t, "remaining branches", localBranches(t, work), []string{"develop", "feature-a", "feature-c", "fix", "main"})
+	assertStrings(t, "deleted", branchNames(res.Deleted), []string{"feature-d"})
+	assertStrings(t, "failed", skippedNames(res.Skipped, SkipFailed), []string{"feature-a"})
+	assertStrings(t, "remaining branches", localBranches(t, work),
+		[]string{"develop", "feature-a", "feature-b", "feature-c", "feature-e", "feature-f", "fix", "main"})
 }
 
 // A GIT_DIR inherited from the environment must not redirect the cleanup to
@@ -222,6 +256,7 @@ func TestCleanIgnoresGitDirEnvironment(t *testing.T) {
 
 func TestRunEndToEnd(t *testing.T) {
 	root, work := fixture(t)
+	before := localBranches(t, work)
 	var out, errOut bytes.Buffer
 	if code := run([]string{root, "--dry-run"}, &out, &errOut); code != exitOK {
 		t.Fatalf("dry run: exit code %d\nstdout:\n%s\nstderr:\n%s", code, &out, &errOut)
@@ -229,27 +264,27 @@ func TestRunEndToEnd(t *testing.T) {
 	for _, want := range []string{
 		"Found 1 Git repository.",
 		"would prune  origin/feature-a",
-		"would delete feature-b",
-		"1 unique commit",
+		"would delete feature-d",
+		"skipped      feature-b: 1 commit not on any remote",
 		"skipped      fix: currently checked out (HEAD)",
+		"Branches kept (unpushed commits)",
 		"Summary (dry run - nothing was changed)",
 	} {
 		if !strings.Contains(out.String(), want) {
 			t.Errorf("dry-run output lacks %q:\n%s", want, &out)
 		}
 	}
-	if got := localBranches(t, work); len(got) != 6 {
-		t.Fatalf("dry run changed the branches: %q", got)
-	}
+	assertStrings(t, "branches after the dry run", localBranches(t, work), before)
 
 	out.Reset()
 	if code := run([]string{"--gc", root}, &out, &errOut); code != exitOK {
 		t.Fatalf("real run: exit code %d\nstdout:\n%s\nstderr:\n%s", code, &out, &errOut)
 	}
-	for _, want := range []string{"pruned       origin/feature-a", "deleted      feature-b", "Disk space freed by git gc"} {
+	for _, want := range []string{"pruned       origin/feature-a", "deleted      feature-d", "Disk space freed by git gc"} {
 		if !strings.Contains(out.String(), want) {
 			t.Errorf("output lacks %q:\n%s", want, &out)
 		}
 	}
-	assertStrings(t, "remaining branches", localBranches(t, work), []string{"develop", "feature-c", "fix", "main"})
+	assertStrings(t, "remaining branches", localBranches(t, work),
+		[]string{"develop", "feature-b", "feature-c", "feature-e", "feature-f", "fix", "main"})
 }

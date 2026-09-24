@@ -32,7 +32,8 @@ repository in it and, in each one:
 1. prunes the remote-tracking branches whose branch was deleted on the remote
    (`git fetch --all --prune`);
 2. force-deletes (`git branch -D`) every local branch that is not on your keep
-   list (`main`, `master`, `dev` and `develop` by default);
+   list (`main`, `master`, `dev` and `develop` by default) and whose commits
+   are all on a remote: unpushed work is never deleted;
 3. reports what it did and how much disk space Git can reclaim, and can run
    `git gc` to reclaim it right away.
 
@@ -47,11 +48,12 @@ Nothing is ever pushed: branches on your remotes are never touched.
 - 🔍 **Finds every repository** under a folder, skipping `node_modules`,
   worktrees and submodules.
 - ✂️ **Prunes stale remote-tracking branches**, then deletes local branches,
-  merged or not.
-- 🛡️ **Keep list** with glob patterns (`release/*`). The checked-out branch and
-  branches used by worktrees are never deleted.
-- 👀 **`--dry-run`** shows everything that would happen, and flags the
-  *unique commits*: work that exists nowhere else.
+  merged or not, once their commits are safe on a remote.
+- 🛡️ **Never deletes unpushed work**: a branch holding commits that no remote
+  has is kept. So are the branches of your keep list (glob patterns such as
+  `release/*`) and the checked-out ones.
+- 👀 **`--dry-run`** shows everything that would happen, without changing
+  anything.
 - 💾 **Disk space report**: an estimate of what Git can reclaim, and the real
   numbers with `--gc`.
 - ⚡ **Fast and portable**: repositories are processed in parallel. It is a
@@ -139,7 +141,7 @@ git-cleaner ~/Projects
 |---|---|---|
 | `--keep <list>` | `main,master,dev,develop` | Local branches never deleted: comma-separated names or glob patterns. Replaces the default list. `*` does not match `/`: `release/*` protects `release/1.0`, not `release/1.0/fix`. |
 | `--dry-run` | off | Show what would be pruned and deleted; change nothing. |
-| `--no-fetch` | off | Skip the fetch/prune step (no network access). |
+| `--no-fetch` | off | Skip the fetch/prune step (no network access): branches are checked against the remotes as of the last fetch. |
 | `--gc` | off | Run `git gc` in each repository after the cleanup and report the space actually freed ([details](#about-disk-space)). |
 | `-j`, `--jobs <n>` | CPUs, max 8 | Repositories processed in parallel. |
 | `--timeout <d>` | `2m` | Time limit of each network operation (`30s`, `5m`...); `0` disables it. |
@@ -174,12 +176,14 @@ git cleaner --dry-run ~/Projects                         # Git runs git-cleaner 
    instead: it only asks the remote for its branch list and writes nothing.
    A network or authentication failure is reported, and the cleanup of that
    repository goes on.
-3. **Sorting**: each local branch is either *kept* (it matches `--keep`),
-   *skipped* (checked out in the working tree or in a linked worktree, which
-   Git refuses to delete) or *deleted*. For each branch to delete, the tool
-   counts its **unique commits**: commits reachable from no remaining
-   reference (remote branch, tag, kept branch, HEAD...), i.e. work that only
-   the reflog will still hold. Review them in dry-run mode.
+3. **Sorting**: each local branch is either *kept* because it matches
+   `--keep`, *skipped* because it is checked out (in the working tree or a
+   linked worktree, which Git refuses to delete), *kept* because it holds
+   **commits that no remote has**, or *deleted*. A commit counts as pushed when
+   a remote-tracking branch that survives the prune contains it: branches
+   merged on the server and then deleted qualify, while work never pushed,
+   commits added after the last push and branches deleted on the remote
+   without being merged are kept.
 4. **Deletion**: `git branch -D` runs branch by branch. When Git refuses
    (locked reference, branch being rebased...), a warning is printed and the
    next branch is processed.
@@ -194,9 +198,12 @@ Repositories are processed in parallel, and results are printed in scan order.
 ## Safety
 
 - Nothing is ever pushed: branches on the remotes are never modified.
+- A local branch is only deleted when every one of its commits is on a
+  remote, so a deleted branch can always be fetched back. The real run checks
+  this right after fetching; `--dry-run` and `--no-fetch` rely on the last
+  fetch (a branch merged on the server since then shows up as kept).
 - `--dry-run` changes nothing: it only contacts the remotes to list their
-  branches. Always run it first: unmerged branches **are** deleted, and
-  `unique commits` show which ones hold work that exists nowhere else.
+  branches. Run it first to review what will go.
 - The checked-out branch and branches used by linked worktrees are never
   deleted. Bare repositories, submodules and worktrees are not processed.
 - Git runs non-interactively: `GIT_TERMINAL_PROMPT=0` makes it fail instead of
@@ -213,17 +220,14 @@ Repositories are processed in parallel, and results are printed in scan order.
 
 ## Recovering a deleted branch
 
-The report prints the commit of every deleted branch. To bring one back:
+Deleted branches only hold pushed commits, so nothing is lost. If the branch
+still exists on the remote, `git switch <branch>` recreates it. Otherwise its
+commits live on in another remote branch (typically the one it was merged
+into), and the commit printed in the report brings it back:
 
 ```sh
-git -C ~/Projects/api branch experiment/cache c34673700a
+git -C ~/Projects/api branch feature/login 71db8c968a
 ```
-
-If the output is lost, `git -C <repository> reflog` lists the commits HEAD
-went through. This works as long as Git has not garbage-collected the
-objects. Commits you made or checked out stay in the HEAD reflog, and remain
-recoverable, for 30 days by default. Other objects can be dropped by the next
-garbage collection (automatic, or `--gc`) once they are two weeks old.
 
 ## About disk space
 
@@ -233,7 +237,8 @@ collection deletes only when all three conditions hold:
 
 1. **No reference points to them any more.** The estimate therefore leaves out
    objects still reachable from a remote branch, a tag, another branch or
-   HEAD: deleting a local branch that still exists on the remote frees nothing.
+   HEAD. As git-cleaner only deletes pushed branches, the space mostly comes
+   from pruned remote-tracking branches whose commits nothing else references.
 2. **No reflog entry references them.** By default, entries expire after 30
    days for commits no longer reachable from their branch
    (`gc.reflogExpireUnreachable`), and after 90 days otherwise.

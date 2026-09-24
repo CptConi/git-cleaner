@@ -291,9 +291,10 @@ func (r *Repo) DeleteBranch(name string) error {
 	return err
 }
 
-// CountUnique counts the commits reachable from tip but from none of keep.
-func (r *Repo) CountUnique(tip string, keep []string) (int, error) {
-	out, err := r.git.exec(command{dir: r.Path, stdin: revisions([]string{tip}, keep)},
+// CountUnique counts the commits reachable from tip but from none of others
+// (e.g. the commits of a branch that no remote-tracking branch holds).
+func (r *Repo) CountUnique(tip string, others []string) (int, error) {
+	out, err := r.git.exec(command{dir: r.Path, stdin: revisions([]string{tip}, others)},
 		"rev-list", "--count", "--stdin")
 	if err != nil {
 		return 0, err

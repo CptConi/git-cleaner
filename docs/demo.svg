@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="758" height="864" viewBox="0 0 758 864">
+<svg xmlns="http://www.w3.org/2000/svg" width="758" height="845" viewBox="0 0 758 845">
 <rect width="100%" height="100%" rx="10" fill="#0d1117"/>
 <circle cx="24.0" cy="20" r="6" fill="#ff5f57"/>
 <circle cx="44.0" cy="20" r="6" fill="#febc2e"/>
@@ -45,25 +45,26 @@
 <text x="160.8 169.2 177.6 186.0 194.4 202.8 211.2 219.6 228.0 236.4 244.8 253.2 261.6 270.0 278.4 286.8 295.2 303.6 312.0 320.4 328.8 337.2 345.6 354.0 362.4" y="271.0" fill="#c9d1d9" xml:space="preserve">origin/feature/rate-limit</text>
 <text x="51.6 60.0 68.4 76.8 85.2" y="290.0" fill="#3fb950" xml:space="preserve">would</text>
 <text x="102.0 110.4 118.8 127.2 135.6 144.0" y="290.0" fill="#3fb950" xml:space="preserve">delete</text>
-<text x="160.8 169.2 177.6 186.0 194.4 202.8 211.2 219.6 228.0 236.4 244.8 253.2 261.6 270.0 278.4 286.8" y="290.0" fill="#c9d1d9" xml:space="preserve">experiment/cache</text>
-<text x="328.8 337.2 345.6 354.0 362.4 370.8 379.2 387.6 396.0 404.4" y="290.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">c34673700a</text>
-<text x="429.6" y="290.0" fill="#d29922" xml:space="preserve">3</text>
-<text x="446.4 454.8 463.2 471.6 480.0 488.4" y="290.0" fill="#d29922" xml:space="preserve">unique</text>
-<text x="505.2 513.6 522.0 530.4 538.8 547.2 555.6" y="290.0" fill="#d29922" xml:space="preserve">commits</text>
+<text x="160.8 169.2 177.6 186.0 194.4 202.8 211.2 219.6 228.0 236.4 244.8 253.2 261.6" y="290.0" fill="#c9d1d9" xml:space="preserve">feature/login</text>
+<text x="328.8 337.2 345.6 354.0 362.4 370.8 379.2 387.6 396.0 404.4" y="290.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">71db8c968a</text>
 <text x="51.6 60.0 68.4 76.8 85.2" y="309.0" fill="#3fb950" xml:space="preserve">would</text>
 <text x="102.0 110.4 118.8 127.2 135.6 144.0" y="309.0" fill="#3fb950" xml:space="preserve">delete</text>
-<text x="160.8 169.2 177.6 186.0 194.4 202.8 211.2 219.6 228.0 236.4 244.8 253.2 261.6" y="309.0" fill="#c9d1d9" xml:space="preserve">feature/login</text>
-<text x="328.8 337.2 345.6 354.0 362.4 370.8 379.2 387.6 396.0 404.4" y="309.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">71db8c968a</text>
-<text x="51.6 60.0 68.4 76.8 85.2" y="328.0" fill="#3fb950" xml:space="preserve">would</text>
-<text x="102.0 110.4 118.8 127.2 135.6 144.0" y="328.0" fill="#3fb950" xml:space="preserve">delete</text>
-<text x="160.8 169.2 177.6 186.0 194.4 202.8 211.2 219.6 228.0 236.4 244.8 253.2 261.6 270.0 278.4 286.8 295.2 303.6" y="328.0" fill="#c9d1d9" xml:space="preserve">feature/rate-limit</text>
-<text x="328.8 337.2 345.6 354.0 362.4 370.8 379.2 387.6 396.0 404.4" y="328.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">d03d5894b9</text>
+<text x="160.8 169.2 177.6 186.0 194.4 202.8 211.2 219.6 228.0 236.4 244.8 253.2 261.6 270.0 278.4 286.8 295.2 303.6" y="309.0" fill="#c9d1d9" xml:space="preserve">feature/rate-limit</text>
+<text x="328.8 337.2 345.6 354.0 362.4 370.8 379.2 387.6 396.0 404.4" y="309.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">d03d5894b9</text>
+<text x="51.6 60.0 68.4 76.8 85.2 93.6 102.0" y="328.0" fill="#d29922" xml:space="preserve">skipped</text>
+<text x="160.8 169.2 177.6 186.0 194.4 202.8 211.2 219.6 228.0 236.4 244.8" y="328.0" fill="#c9d1d9" xml:space="preserve">fix/bug-42:</text>
+<text x="261.6 270.0 278.4 286.8 295.2 303.6 312.0 320.4 328.8" y="328.0" fill="#c9d1d9" xml:space="preserve">currently</text>
+<text x="345.6 354.0 362.4 370.8 379.2 387.6 396.0" y="328.0" fill="#c9d1d9" xml:space="preserve">checked</text>
+<text x="412.8 421.2 429.6" y="328.0" fill="#c9d1d9" xml:space="preserve">out</text>
+<text x="446.4 454.8 463.2 471.6 480.0 488.4" y="328.0" fill="#c9d1d9" xml:space="preserve">(HEAD)</text>
 <text x="51.6 60.0 68.4 76.8 85.2 93.6 102.0" y="347.0" fill="#d29922" xml:space="preserve">skipped</text>
-<text x="160.8 169.2 177.6 186.0 194.4 202.8 211.2 219.6 228.0 236.4 244.8" y="347.0" fill="#c9d1d9" xml:space="preserve">fix/bug-42:</text>
-<text x="261.6 270.0 278.4 286.8 295.2 303.6 312.0 320.4 328.8" y="347.0" fill="#c9d1d9" xml:space="preserve">currently</text>
-<text x="345.6 354.0 362.4 370.8 379.2 387.6 396.0" y="347.0" fill="#c9d1d9" xml:space="preserve">checked</text>
-<text x="412.8 421.2 429.6" y="347.0" fill="#c9d1d9" xml:space="preserve">out</text>
-<text x="446.4 454.8 463.2 471.6 480.0 488.4" y="347.0" fill="#c9d1d9" xml:space="preserve">(HEAD)</text>
+<text x="160.8 169.2 177.6 186.0 194.4 202.8 211.2 219.6 228.0 236.4 244.8 253.2 261.6 270.0 278.4 286.8 295.2" y="347.0" fill="#c9d1d9" xml:space="preserve">experiment/cache:</text>
+<text x="312.0" y="347.0" fill="#c9d1d9" xml:space="preserve">3</text>
+<text x="328.8 337.2 345.6 354.0 362.4 370.8 379.2" y="347.0" fill="#c9d1d9" xml:space="preserve">commits</text>
+<text x="396.0 404.4 412.8" y="347.0" fill="#c9d1d9" xml:space="preserve">not</text>
+<text x="429.6 438.0" y="347.0" fill="#c9d1d9" xml:space="preserve">on</text>
+<text x="454.8 463.2 471.6" y="347.0" fill="#c9d1d9" xml:space="preserve">any</text>
+<text x="488.4 496.8 505.2 513.6 522.0 530.4" y="347.0" fill="#c9d1d9" xml:space="preserve">remote</text>
 <text x="51.6 60.0 68.4 76.8" y="366.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">kept</text>
 <text x="160.8 169.2 177.6 186.0 194.4 202.8 211.2 219.6" y="366.0" fill="#c9d1d9" xml:space="preserve">develop,</text>
 <text x="236.4 244.8 253.2 261.6" y="366.0" fill="#c9d1d9" xml:space="preserve">main</text>
@@ -75,13 +76,14 @@
 <text x="261.6 270.0 278.4 286.8 295.2" y="404.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">clean</text>
 <text x="18.0 26.4 34.8 43.2 51.6" y="423.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">[3/4]</text>
 <text x="68.4 76.8 85.2 93.6 102.0 110.4 118.8 127.2 135.6 144.0 152.4 160.8 169.2 177.6 186.0 194.4 202.8 211.2 219.6 228.0" y="423.0" fill="#c9d1d9" font-weight="700" xml:space="preserve">playground/rust-wasm</text>
-<text x="51.6 60.0 68.4 76.8 85.2" y="442.0" fill="#3fb950" xml:space="preserve">would</text>
-<text x="102.0 110.4 118.8 127.2 135.6 144.0" y="442.0" fill="#3fb950" xml:space="preserve">delete</text>
-<text x="160.8 169.2 177.6 186.0 194.4 202.8 211.2 219.6" y="442.0" fill="#c9d1d9" xml:space="preserve">try-wgpu</text>
-<text x="244.8 253.2 261.6 270.0 278.4 286.8 295.2 303.6 312.0 320.4" y="442.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">f9604a9afa</text>
-<text x="345.6" y="442.0" fill="#d29922" xml:space="preserve">2</text>
-<text x="362.4 370.8 379.2 387.6 396.0 404.4" y="442.0" fill="#d29922" xml:space="preserve">unique</text>
-<text x="421.2 429.6 438.0 446.4 454.8 463.2 471.6" y="442.0" fill="#d29922" xml:space="preserve">commits</text>
+<text x="51.6 60.0 68.4 76.8 85.2 93.6 102.0" y="442.0" fill="#d29922" xml:space="preserve">skipped</text>
+<text x="160.8 169.2 177.6 186.0 194.4 202.8 211.2 219.6 228.0" y="442.0" fill="#c9d1d9" xml:space="preserve">try-wgpu:</text>
+<text x="244.8" y="442.0" fill="#c9d1d9" xml:space="preserve">3</text>
+<text x="261.6 270.0 278.4 286.8 295.2 303.6 312.0" y="442.0" fill="#c9d1d9" xml:space="preserve">commits</text>
+<text x="328.8 337.2 345.6" y="442.0" fill="#c9d1d9" xml:space="preserve">not</text>
+<text x="362.4 370.8" y="442.0" fill="#c9d1d9" xml:space="preserve">on</text>
+<text x="387.6 396.0 404.4" y="442.0" fill="#c9d1d9" xml:space="preserve">any</text>
+<text x="421.2 429.6 438.0 446.4 454.8 463.2" y="442.0" fill="#c9d1d9" xml:space="preserve">remote</text>
 <text x="51.6 60.0 68.4 76.8" y="461.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">kept</text>
 <text x="160.8 169.2 177.6 186.0" y="461.0" fill="#c9d1d9" xml:space="preserve">main</text>
 <text x="18.0 26.4 34.8 43.2 51.6" y="499.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">[4/4]</text>
@@ -120,66 +122,38 @@
 <text x="85.2 93.6 102.0 110.4 118.8 127.2 135.6 144.0" y="689.0" fill="#c9d1d9" xml:space="preserve">branches</text>
 <text x="160.8 169.2" y="689.0" fill="#c9d1d9" xml:space="preserve">to</text>
 <text x="186.0 194.4 202.8 211.2 219.6 228.0" y="689.0" fill="#c9d1d9" xml:space="preserve">delete</text>
-<text x="312.0" y="689.0" fill="#c9d1d9" xml:space="preserve">6</text>
-<text x="337.2 345.6" y="689.0" fill="#d29922" xml:space="preserve">(2</text>
-<text x="362.4 370.8 379.2 387.6" y="689.0" fill="#d29922" xml:space="preserve">with</text>
-<text x="404.4 412.8 421.2 429.6 438.0 446.4" y="689.0" fill="#d29922" xml:space="preserve">unique</text>
-<text x="463.2 471.6 480.0 488.4 496.8 505.2 513.6 522.0" y="689.0" fill="#d29922" xml:space="preserve">commits)</text>
+<text x="312.0" y="689.0" fill="#c9d1d9" xml:space="preserve">4</text>
 <text x="34.8 43.2 51.6 60.0 68.4 76.8 85.2 93.6" y="708.0" fill="#c9d1d9" xml:space="preserve">Branches</text>
 <text x="110.4 118.8 127.2 135.6" y="708.0" fill="#c9d1d9" xml:space="preserve">kept</text>
 <text x="152.4 160.8 169.2 177.6 186.0 194.4 202.8 211.2 219.6 228.0 236.4" y="708.0" fill="#c9d1d9" xml:space="preserve">(whitelist)</text>
 <text x="312.0" y="708.0" fill="#c9d1d9" xml:space="preserve">6</text>
 <text x="34.8 43.2 51.6 60.0 68.4 76.8 85.2 93.6" y="727.0" fill="#c9d1d9" xml:space="preserve">Branches</text>
-<text x="110.4 118.8 127.2 135.6 144.0 152.4 160.8" y="727.0" fill="#c9d1d9" xml:space="preserve">skipped</text>
-<text x="177.6 186.0 194.4 202.8 211.2 219.6 228.0 236.4" y="727.0" fill="#c9d1d9" xml:space="preserve">(checked</text>
-<text x="253.2 261.6 270.0 278.4" y="727.0" fill="#c9d1d9" xml:space="preserve">out)</text>
-<text x="312.0" y="727.0" fill="#c9d1d9" xml:space="preserve">1</text>
-<text x="34.8 43.2 51.6 60.0 68.4 76.8 85.2 93.6 102.0" y="746.0" fill="#c9d1d9" xml:space="preserve">Estimated</text>
-<text x="118.8 127.2 135.6 144.0 152.4 160.8 169.2 177.6 186.0 194.4 202.8" y="746.0" fill="#c9d1d9" xml:space="preserve">reclaimable</text>
-<text x="219.6 228.0 236.4 244.8 253.2" y="746.0" fill="#c9d1d9" xml:space="preserve">space</text>
-<text x="312.0 320.4 328.8 337.2 345.6" y="746.0" fill="#c9d1d9" xml:space="preserve">392.6</text>
-<text x="362.4 370.8 379.2" y="746.0" fill="#c9d1d9" xml:space="preserve">KiB</text>
-<text x="34.8 43.2 51.6 60.0 68.4 76.8 85.2" y="765.0" fill="#c9d1d9" xml:space="preserve">Elapsed</text>
-<text x="312.0 320.4 328.8 337.2 345.6" y="765.0" fill="#c9d1d9" xml:space="preserve">100ms</text>
-<text x="18.0 26.4 34.8 43.2 51.6 60.0 68.4 76.8 85.2 93.6 102.0 110.4 118.8 127.2 135.6 144.0 152.4 160.8 169.2 177.6 186.0 194.4 202.8 211.2 219.6 228.0 236.4 244.8 253.2 261.6 270.0 278.4 286.8 295.2 303.6 312.0 320.4 328.8 337.2 345.6 354.0 362.4 370.8 379.2 387.6 396.0 404.4 412.8 421.2 429.6 438.0 446.4 454.8 463.2 471.6 480.0 488.4 496.8 505.2 513.6 522.0 530.4 538.8 547.2" y="784.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">----------------------------------------------------------------</text>
-<text x="18.0 26.4 34.8 43.2 51.6 60.0 68.4 76.8" y="803.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">Deleting</text>
-<text x="93.6 102.0 110.4 118.8" y="803.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">refs</text>
-<text x="135.6 144.0 152.4 160.8 169.2" y="803.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">frees</text>
-<text x="186.0 194.4" y="803.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">no</text>
-<text x="211.2 219.6 228.0 236.4" y="803.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">disk</text>
-<text x="253.2 261.6 270.0 278.4 286.8" y="803.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">space</text>
-<text x="303.6 312.0" y="803.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">by</text>
-<text x="328.8 337.2 345.6 354.0 362.4 370.8 379.2" y="803.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">itself:</text>
-<text x="396.0 404.4 412.8 421.2 429.6" y="803.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">Git's</text>
-<text x="446.4 454.8 463.2 471.6 480.0 488.4 496.8" y="803.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">garbage</text>
-<text x="513.6 522.0 530.4 538.8 547.2 555.6 564.0 572.4 580.8 589.2" y="803.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">collection</text>
-<text x="606.0 614.4 622.8 631.2 639.6 648.0 656.4 664.8" y="803.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">reclaims</text>
-<text x="681.6 690.0" y="803.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">it</text>
-<text x="706.8 715.2 723.6 732.0" y="803.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">once</text>
-<text x="18.0 26.4 34.8 43.2 51.6 60.0 68.4" y="822.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">reflogs</text>
-<text x="85.2 93.6" y="822.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">no</text>
-<text x="110.4 118.8 127.2 135.6 144.0 152.4" y="822.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">longer</text>
-<text x="169.2 177.6 186.0 194.4 202.8 211.2 219.6 228.0 236.4" y="822.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">reference</text>
-<text x="253.2 261.6 270.0" y="822.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">the</text>
-<text x="286.8 295.2 303.6 312.0 320.4 328.8 337.2" y="822.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">objects</text>
-<text x="354.0 362.4 370.8 379.2 387.6 396.0" y="822.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">(about</text>
-<text x="412.8 421.2" y="822.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">30</text>
-<text x="438.0 446.4 454.8 463.2" y="822.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">days</text>
-<text x="480.0 488.4" y="822.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">by</text>
-<text x="505.2 513.6 522.0 530.4 538.8 547.2 555.6 564.0 572.4" y="822.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">default).</text>
-<text x="589.2 597.6 606.0 614.4" y="822.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">--gc</text>
-<text x="631.2 639.6 648.0 656.4" y="822.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">runs</text>
-<text x="673.2 681.6" y="822.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">it</text>
-<text x="698.4 706.8 715.2 723.6" y="822.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">now.</text>
-<text x="18.0 26.4 34.8" y="841.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">Run</text>
-<text x="51.6 60.0 68.4" y="841.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">the</text>
-<text x="85.2 93.6 102.0 110.4" y="841.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">same</text>
-<text x="127.2 135.6 144.0 152.4 160.8 169.2 177.6" y="841.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">command</text>
-<text x="194.4 202.8 211.2 219.6 228.0 236.4 244.8" y="841.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">without</text>
-<text x="261.6 270.0 278.4 286.8 295.2 303.6 312.0 320.4 328.8" y="841.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">--dry-run</text>
-<text x="345.6 354.0" y="841.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">to</text>
-<text x="370.8 379.2 387.6 396.0 404.4" y="841.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">apply</text>
-<text x="421.2 429.6 438.0 446.4 454.8" y="841.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">these</text>
-<text x="471.6 480.0 488.4 496.8 505.2 513.6 522.0 530.4" y="841.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">changes.</text>
+<text x="110.4 118.8 127.2 135.6" y="727.0" fill="#c9d1d9" xml:space="preserve">kept</text>
+<text x="152.4 160.8 169.2 177.6 186.0 194.4 202.8 211.2 219.6" y="727.0" fill="#c9d1d9" xml:space="preserve">(unpushed</text>
+<text x="236.4 244.8 253.2 261.6 270.0 278.4 286.8 295.2" y="727.0" fill="#c9d1d9" xml:space="preserve">commits)</text>
+<text x="312.0" y="727.0" fill="#d29922" xml:space="preserve">2</text>
+<text x="34.8 43.2 51.6 60.0 68.4 76.8 85.2 93.6" y="746.0" fill="#c9d1d9" xml:space="preserve">Branches</text>
+<text x="110.4 118.8 127.2 135.6 144.0 152.4 160.8" y="746.0" fill="#c9d1d9" xml:space="preserve">skipped</text>
+<text x="177.6 186.0 194.4 202.8 211.2 219.6 228.0 236.4" y="746.0" fill="#c9d1d9" xml:space="preserve">(checked</text>
+<text x="253.2 261.6 270.0 278.4" y="746.0" fill="#c9d1d9" xml:space="preserve">out)</text>
+<text x="312.0" y="746.0" fill="#c9d1d9" xml:space="preserve">1</text>
+<text x="34.8 43.2 51.6 60.0 68.4 76.8 85.2 93.6 102.0" y="765.0" fill="#c9d1d9" xml:space="preserve">Estimated</text>
+<text x="118.8 127.2 135.6 144.0 152.4 160.8 169.2 177.6 186.0 194.4 202.8" y="765.0" fill="#c9d1d9" xml:space="preserve">reclaimable</text>
+<text x="219.6 228.0 236.4 244.8 253.2" y="765.0" fill="#c9d1d9" xml:space="preserve">space</text>
+<text x="312.0" y="765.0" fill="#c9d1d9" xml:space="preserve">0</text>
+<text x="328.8" y="765.0" fill="#c9d1d9" xml:space="preserve">B</text>
+<text x="34.8 43.2 51.6 60.0 68.4 76.8 85.2" y="784.0" fill="#c9d1d9" xml:space="preserve">Elapsed</text>
+<text x="312.0 320.4 328.8 337.2 345.6" y="784.0" fill="#c9d1d9" xml:space="preserve">100ms</text>
+<text x="18.0 26.4 34.8 43.2 51.6 60.0 68.4 76.8 85.2 93.6 102.0 110.4 118.8 127.2 135.6 144.0 152.4 160.8 169.2 177.6 186.0 194.4 202.8 211.2 219.6 228.0 236.4 244.8 253.2 261.6 270.0 278.4 286.8 295.2 303.6 312.0 320.4 328.8 337.2 345.6 354.0 362.4 370.8 379.2 387.6 396.0 404.4 412.8 421.2 429.6 438.0 446.4 454.8 463.2 471.6 480.0 488.4 496.8 505.2 513.6 522.0 530.4 538.8 547.2" y="803.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">----------------------------------------------------------------</text>
+<text x="18.0 26.4 34.8" y="822.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">Run</text>
+<text x="51.6 60.0 68.4" y="822.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">the</text>
+<text x="85.2 93.6 102.0 110.4" y="822.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">same</text>
+<text x="127.2 135.6 144.0 152.4 160.8 169.2 177.6" y="822.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">command</text>
+<text x="194.4 202.8 211.2 219.6 228.0 236.4 244.8" y="822.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">without</text>
+<text x="261.6 270.0 278.4 286.8 295.2 303.6 312.0 320.4 328.8" y="822.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">--dry-run</text>
+<text x="345.6 354.0" y="822.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">to</text>
+<text x="370.8 379.2 387.6 396.0 404.4" y="822.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">apply</text>
+<text x="421.2 429.6 438.0 446.4 454.8" y="822.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">these</text>
+<text x="471.6 480.0 488.4 496.8 505.2 513.6 522.0 530.4" y="822.0" fill="#c9d1d9" opacity="0.55" xml:space="preserve">changes.</text>
 </g>
 </svg>

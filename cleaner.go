@@ -9,16 +9,24 @@ import (
 
 // BranchInfo describes a local branch removed by the cleanup.
 type BranchInfo struct {
-	Name   string // short name, e.g. "feature/login"
-	SHA    string // commit the branch pointed to (what is needed to restore it)
-	Unique int    // commits found on no surviving ref (-1 = unknown)
+	Name string // short name, e.g. "feature/login"
+	SHA  string // commit the branch pointed to (what is needed to restore it)
 }
+
+// SkipKind tells why a local branch was left in place.
+type SkipKind int
+
+const (
+	SkipCheckedOut SkipKind = iota // checked out in a worktree: git refuses to delete it
+	SkipUnpushed                   // holds commits that no remote has
+	SkipFailed                     // the push check or the deletion failed (an error)
+)
 
 // SkippedBranch is a local branch that was not deleted.
 type SkippedBranch struct {
 	Name   string
+	Kind   SkipKind
 	Reason string
-	Failed bool // git refused the deletion: counted as an error
 }
 
 // RepoResult describes what happened (or would happen, in dry-run mode) in
@@ -70,7 +78,8 @@ func (c *Cleaner) SafeClean(path string) (res *RepoResult) {
 //
 //  1. prune the remote-tracking branches deleted on the remote;
 //  2. sort the local branches into kept, skipped and to delete;
-//  3. delete them with "git branch -D", going on after any failure;
+//  3. delete those whose commits are all on a remote with "git branch -D",
+//     going on after any failure;
 //  4. estimate the disk space held only by the removed references;
 //  5. optionally run "git gc" and measure the space it really freed.
 //
@@ -133,31 +142,39 @@ func (c *Cleaner) Clean(path string) *RepoResult {
 			res.Kept = append(res.Kept, name)
 		case ref.Current:
 			// Git cannot delete the branch HEAD is on: warn and go on.
-			res.Skipped = append(res.Skipped, SkippedBranch{Name: name, Reason: "currently checked out (HEAD)"})
+			res.Skipped = append(res.Skipped, SkippedBranch{Name: name, Kind: SkipCheckedOut, Reason: "currently checked out (HEAD)"})
 		case ref.Worktree != "":
-			res.Skipped = append(res.Skipped, SkippedBranch{Name: name, Reason: "checked out in worktree " + ref.Worktree})
+			res.Skipped = append(res.Skipped, SkippedBranch{Name: name, Kind: SkipCheckedOut, Reason: "checked out in worktree " + ref.Worktree})
 		default:
 			candidates = append(candidates, ref)
 			gone[ref.Name] = true
 		}
 	}
 	keep := survivingObjects(refs, gone, repo.HeadCommit())
+	onRemotes := remoteObjects(refs, gone)
 
-	// Step 3: delete the candidates (dry-run: only list them). "Unique"
-	// commits are those that only the reflog will still reference afterwards.
+	// Step 3: delete the candidates (dry-run: only list them), but only when
+	// every one of their commits is on a remote-tracking branch that survives
+	// the prune: a branch holding work that exists nowhere else is kept, even
+	// if it was pushed once and then deleted on the remote.
 	for _, ref := range candidates {
-		branch := BranchInfo{Name: strings.TrimPrefix(ref.Name, "refs/heads/"), SHA: ref.SHA, Unique: -1}
-		if n, err := repo.CountUnique(ref.SHA, keep); err == nil {
-			branch.Unique = n
-		}
-		if !c.opts.DryRun {
-			if err := repo.DeleteBranch(branch.Name); err != nil {
-				res.Skipped = append(res.Skipped, SkippedBranch{Name: branch.Name, Reason: err.Error(), Failed: true})
-				keep = append(keep, ref.SHA) // the branch survives
-				continue
+		name := strings.TrimPrefix(ref.Name, "refs/heads/")
+		kind, reason := SkipFailed, ""
+		if unpushed, err := repo.CountUnique(ref.SHA, onRemotes); err != nil {
+			reason = "cannot check that it is pushed: " + err.Error()
+		} else if unpushed > 0 {
+			kind, reason = SkipUnpushed, fmt.Sprintf("%d %s not on any remote", unpushed, plural(unpushed, "commit", "commits"))
+		} else if !c.opts.DryRun {
+			if err := repo.DeleteBranch(name); err != nil {
+				reason = err.Error()
 			}
 		}
-		res.Deleted = append(res.Deleted, branch)
+		if reason != "" {
+			res.Skipped = append(res.Skipped, SkippedBranch{Name: name, Kind: kind, Reason: reason})
+			keep = append(keep, ref.SHA) // the branch survives
+			continue
+		}
+		res.Deleted = append(res.Deleted, BranchInfo{Name: name, SHA: ref.SHA})
 	}
 
 	// Step 4: deleting a reference frees (almost) nothing by itself: Git's
@@ -257,6 +274,19 @@ func survivingObjects(refs []Ref, gone map[string]bool, head string) []string {
 	}
 	add(head)
 	return objects
+}
+
+// remoteObjects returns the distinct commits pointed to by the
+// remote-tracking branches that the cleanup leaves in place: the commits the
+// remotes are known to hold (as of the last fetch).
+func remoteObjects(refs []Ref, gone map[string]bool) []string {
+	var remote []Ref
+	for _, ref := range refs {
+		if strings.HasPrefix(ref.Name, "refs/remotes/") {
+			remote = append(remote, ref)
+		}
+	}
+	return survivingObjects(remote, gone, "")
 }
 
 // dirSize returns the disk space used by the regular files under dir.

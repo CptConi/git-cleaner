@@ -280,7 +280,8 @@ Usage:
 Recursively finds the Git repositories under <root-directory> (folders that
 contain a .git directory). In each one, it prunes the remote-tracking branches
 whose branch was deleted on the remote (git fetch --all --prune), then
-force-deletes (git branch -D) every local branch that is not in the keep list.
+force-deletes (git branch -D) every local branch that is not in the keep list
+and whose commits are all on a remote: unpushed work is never deleted.
 Branches on the remotes are never modified.
 
 Options:
@@ -288,7 +289,9 @@ Options:
                    patterns (default %q).
                    Quote patterns for the shell: --keep 'main,release/*'
   --dry-run        Show what would be pruned and deleted, change nothing.
-  --no-fetch       Skip the fetch/prune step (no network access).
+  --no-fetch       Skip the fetch/prune step (no network access): branches are
+                   then checked against the state of the remotes at the last
+                   fetch.
   --gc             Run "git gc" in every repository after the cleanup to free
                    disk space right away. Deleted branches may then become
                    unrecoverable.

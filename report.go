@@ -109,15 +109,11 @@ func (p *Printer) Repo(index, total int, r *RepoResult) {
 		width = max(width, min(utf8.RuneCountInString(br.Name), 50))
 	}
 	for _, br := range r.Deleted {
-		text := fmt.Sprintf("%-*s  %s", width, br.Name, p.paint(dim, shortSHA(br.SHA)))
-		if br.Unique > 0 {
-			text += "  " + p.paint(yellow, fmt.Sprintf("%d unique %s", br.Unique, plural(br.Unique, "commit", "commits")))
-		}
-		line(green, p.verb("deleted", "would delete"), text)
+		line(green, p.verb("deleted", "would delete"), fmt.Sprintf("%-*s  %s", width, br.Name, p.paint(dim, shortSHA(br.SHA))))
 	}
 	for _, s := range r.Skipped {
 		color := yellow
-		if s.Failed {
+		if s.Kind == SkipFailed {
 			color = red
 		}
 		line(color, "skipped", s.Name+": "+s.Reason)
@@ -144,8 +140,8 @@ func (p *Printer) displayPath(path string) string {
 type Summary struct {
 	Repos, ReposWithErrors int
 	Pruned, Deleted, Kept  int
-	Skipped, Failed        int
-	WithUnique             int // deleted branches holding unique commits
+	CheckedOut, Unpushed   int // branches skipped, by reason
+	Failed                 int // branches whose check or deletion failed
 	Errors                 int
 	Reclaimable            int64 // estimated bytes, summed over known estimates
 	EstimateUnknown        int   // repositories without an estimate
@@ -163,16 +159,14 @@ func (s *Summary) Add(r *RepoResult) {
 	s.Kept += len(r.Kept)
 	errs := len(r.Errors)
 	for _, sk := range r.Skipped {
-		if sk.Failed {
+		switch sk.Kind {
+		case SkipCheckedOut:
+			s.CheckedOut++
+		case SkipUnpushed:
+			s.Unpushed++
+		default:
 			s.Failed++
 			errs++
-		} else {
-			s.Skipped++
-		}
-	}
-	for _, br := range r.Deleted {
-		if br.Unique > 0 {
-			s.WithUnique++
 		}
 	}
 	s.Errors += errs
@@ -205,14 +199,13 @@ func (p *Printer) Summary(s *Summary) {
 	if !p.opts.NoFetch {
 		row(p.verb("Remote-tracking refs pruned", "Remote-tracking refs to prune"), strconv.Itoa(s.Pruned))
 	}
-	deleted := strconv.Itoa(s.Deleted)
-	if s.WithUnique > 0 {
-		deleted += p.paint(yellow, fmt.Sprintf("  (%d with unique commits)", s.WithUnique))
-	}
-	row(p.verb("Local branches deleted", "Local branches to delete"), deleted)
+	row(p.verb("Local branches deleted", "Local branches to delete"), strconv.Itoa(s.Deleted))
 	row("Branches kept (whitelist)", strconv.Itoa(s.Kept))
-	if s.Skipped > 0 {
-		row("Branches skipped (checked out)", strconv.Itoa(s.Skipped))
+	if s.Unpushed > 0 {
+		row("Branches kept (unpushed commits)", p.paint(yellow, strconv.Itoa(s.Unpushed)))
+	}
+	if s.CheckedOut > 0 {
+		row("Branches skipped (checked out)", strconv.Itoa(s.CheckedOut))
 	}
 	if s.Errors > 0 {
 		row("Errors", p.paint(red, fmt.Sprintf("%d in %d %s (see above)",
