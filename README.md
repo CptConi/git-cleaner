@@ -303,6 +303,11 @@ release page.
   a pull request.
 - `dev` is the integration branch. Each feature lives on its own branch
   (`feature/<name>`), merged into `dev` once validated.
+- Features are spec-driven with [OpenSpec](https://github.com/Fission-AI/OpenSpec):
+  each one starts as a change proposal in [`openspec/changes`](openspec/changes)
+  (`/opsx:propose`), is implemented on its feature branch (`/opsx:apply`) and
+  is archived into [`openspec/specs`](openspec/specs) once merged
+  (`/opsx:archive`).
 - Commit messages fit on one line: `<type> (<feature>) <what changed>`, e.g.
   `feat (keep-patterns) add glob support, wording for help`.
 - The `tests passed` check (the whole CI matrix) is required on `dev` and
