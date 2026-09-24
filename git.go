@@ -97,10 +97,18 @@ func gitEnv() []string {
 			env = append(env, kv)
 		}
 	}
-	return append(env,
+	env = append(env,
 		"LC_ALL=C",              // untranslated messages: some of them are parsed
 		"GIT_TERMINAL_PROMPT=0", // fail rather than wait for a password prompt
 	)
+	// Git Credential Manager can also open sign-in windows (browser, dialogs),
+	// which GIT_TERMINAL_PROMPT does not cover: with repositories processed in
+	// parallel, several could pop up at once. Disable them, unless the user
+	// configured GCM_INTERACTIVE explicitly.
+	if _, set := os.LookupEnv("GCM_INTERACTIVE"); !set {
+		env = append(env, "GCM_INTERACTIVE=never")
+	}
+	return env
 }
 
 func isRepoEnvVar(name string) bool {

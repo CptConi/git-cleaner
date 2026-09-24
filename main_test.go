@@ -155,3 +155,20 @@ func TestGitEnvDropsRepositoryVariables(t *testing.T) {
 		t.Error("git environment lacks LC_ALL=C or GIT_TERMINAL_PROMPT=0")
 	}
 }
+
+func TestGitEnvDisablesCredentialManagerPrompts(t *testing.T) {
+	t.Setenv("GCM_INTERACTIVE", "") // restored after the test
+	os.Unsetenv("GCM_INTERACTIVE")
+	if env := gitEnv(); !slices.Contains(env, "GCM_INTERACTIVE=never") {
+		t.Error("GCM_INTERACTIVE=never is not set by default")
+	}
+
+	t.Setenv("GCM_INTERACTIVE", "auto") // an explicit choice of the user wins
+	var values []string
+	for _, kv := range gitEnv() {
+		if value, ok := strings.CutPrefix(kv, "GCM_INTERACTIVE="); ok {
+			values = append(values, value)
+		}
+	}
+	assertStrings(t, "GCM_INTERACTIVE values", values, []string{"auto"})
+}

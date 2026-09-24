@@ -200,9 +200,11 @@ Repositories are processed in parallel, and results are printed in scan order.
 - The checked-out branch and branches used by linked worktrees are never
   deleted. Bare repositories, submodules and worktrees are not processed.
 - Git runs non-interactively: `GIT_TERMINAL_PROMPT=0` makes it fail instead of
-  waiting for a password, and `--timeout` bounds network operations (on macOS
-  and Linux, git is first asked to stop gracefully so that it removes its lock
-  files). Use an SSH agent or a credential helper for private remotes.
+  waiting for a password, `GCM_INTERACTIVE=never` keeps Git Credential Manager
+  from opening sign-in windows (unless you set that variable yourself), and
+  `--timeout` bounds network operations (on macOS and Linux, git is first
+  asked to stop gracefully so that it removes its lock files). Use an SSH
+  agent or stored credentials for private remotes.
 - Environment variables such as `GIT_DIR` or `GIT_WORK_TREE`, which would
   send Git to another repository, are removed from the environment of every
   git command.
