@@ -51,7 +51,8 @@ Nothing is ever pushed: branches on your remotes are never touched.
   merged or not, once their commits are safe on a remote.
 - 🛡️ **Never deletes unpushed work**: a branch holding commits that no remote
   has is kept. So are the branches of your keep list (glob patterns such as
-  `release/*`) and the checked-out ones.
+  `release/*`) and the checked-out ones, and `--exclude` leaves whole folders
+  alone.
 - 👀 **`--dry-run`** shows everything that would happen, without changing
   anything.
 - 💾 **Disk space report**: an estimate of what Git can reclaim, and the real
@@ -139,7 +140,8 @@ git-cleaner ~/Projects
 
 | Option | Default | Description |
 |---|---|---|
-| `--keep <list>` | `main,master,dev,develop` | Local branches never deleted: comma-separated names or glob patterns. Replaces the default list. `*` does not match `/`: `release/*` protects `release/1.0`, not `release/1.0/fix`. |
+| `--keep <list>` | `main,master,dev,develop` | Local branches never deleted: comma-separated names or glob patterns. Replaces the default list; can be repeated. `*` does not match `/`: `release/*` protects `release/1.0`, not `release/1.0/fix`. |
+| `--exclude <list>` | none | Folders skipped with everything below them: comma-separated glob patterns relative to the root, with `/` as the separator on every OS, case-sensitive. `acme` covers `acme/web/app`; `portfolio` does not match `personal/portfolio` (patterns start at the root). Can be repeated. |
 | `--dry-run` | off | Show what would be pruned and deleted; change nothing. |
 | `--no-fetch` | off | Skip the fetch/prune step (no network access): branches are checked against the remotes as of the last fetch. |
 | `--gc` | off | Run `git gc` in each repository after the cleanup and report the space actually freed ([details](#about-disk-space)). |
@@ -151,9 +153,10 @@ git-cleaner ~/Projects
 Flags go before or after the directory:
 
 ```sh
-git-cleaner --keep 'main,develop,release/*' ~/Projects   # quote patterns for the shell
-git-cleaner --no-fetch --gc ~/Projects                   # offline, then reclaim space
-git cleaner --dry-run ~/Projects                         # Git runs git-cleaner as a subcommand
+git-cleaner --keep 'main,develop,release/*' ~/Projects      # quote patterns for the shell
+git-cleaner --exclude 'acme,personal/portfolio' ~/Projects  # leave these folders alone
+git-cleaner --no-fetch --gc ~/Projects                      # offline, then reclaim space
+git cleaner --dry-run ~/Projects                            # Git runs git-cleaner as a subcommand
 ```
 
 | Exit status | Meaning |
@@ -170,6 +173,9 @@ git cleaner --dry-run ~/Projects                         # Git runs git-cleaner 
    *file* (linked worktree, submodule) is skipped too, because its branches
    belong to the main repository. `node_modules` folders are ignored, symbolic
    links are not followed, and unreadable folders are reported and skipped.
+   Folders matching `--exclude` are skipped with their whole subtree, which is
+   not even read; they are listed after the scan, and a pattern that matches
+   no folder is reported before anything is processed.
 2. **Prune**: `git fetch --all --prune` removes the local remote-tracking
    references (`origin/feature-x`) whose branch no longer exists on the
    server. In dry-run mode, `git remote prune --dry-run <remote>` lists them
@@ -279,7 +285,7 @@ release page.
 | `scan.go` | Repository discovery |
 | `cleaner.go` | Per-repository cleanup: prune, sort, delete, estimate, gc |
 | `git.go` | Git execution (environment, timeouts, errors) and commands |
-| `whitelist.go` | `--keep` parsing and matching |
+| `whitelist.go` | `--keep` and `--exclude` pattern parsing and matching |
 | `report.go`, `banner.go` | Console output, summary and startup banner |
 | `platform_*.go` | OS specifics: terminal colors, disk usage of files |
 

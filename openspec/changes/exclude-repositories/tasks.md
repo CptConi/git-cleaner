@@ -21,9 +21,9 @@
 
 ## 4. Documentation
 
-- [ ] 4.1 `usage()`: `--exclude`, anchored and case-sensitive patterns, parent folders covering their subtree, repeatable flags
-- [ ] 4.2 README: Features bullet, Usage options table and examples, How it works (Discovery)
-- [ ] 4.3 `openspec/config.yaml` context and README file table: `whitelist.go` handles the pattern flags
+- [x] 4.1 `usage()`: `--exclude`, anchored and case-sensitive patterns, parent folders covering their subtree, repeatable flags
+- [x] 4.2 README: Features bullet, Usage options table and examples, How it works (Discovery)
+- [x] 4.3 `openspec/config.yaml` context and README file table: `whitelist.go` handles the pattern flags
 
 ## 5. Verification
 

@@ -13,7 +13,7 @@ context: |
     proxies and hooks keep working. Git >= 2.23 required, >= 2.31 for the disk space estimate.
   - Single package main: main.go (CLI flags, orchestration, parallel workers with ordered output), scan.go
     (repository discovery), cleaner.go (per-repository pipeline: prune, sort, delete, estimate, gc), git.go (git
-    execution, environment, timeouts, git commands), whitelist.go (--keep), report.go and banner.go (output),
+    execution, environment, timeouts, git commands), whitelist.go (--keep and --exclude patterns), report.go and banner.go (output),
     platform_unix.go / platform_windows.go (terminal colors, file disk usage).
 
   ## Behavior invariants (every change must preserve them)

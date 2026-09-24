@@ -299,8 +299,12 @@ Branches on the remotes are never modified.
 
 Options:
   --keep <list>    Local branches never deleted: comma-separated names or glob
-                   patterns (default %q).
+                   patterns (default %q). Repeatable.
                    Quote patterns for the shell: --keep 'main,release/*'
+  --exclude <list> Folders skipped with everything below them: comma-separated
+                   glob patterns relative to <root-directory>, with "/" as the
+                   separator, case-sensitive; 'acme' covers acme/web/app too.
+                   Repeatable. Example: --exclude 'acme,personal/portfolio'
   --dry-run        Show what would be pruned and deleted, change nothing.
   --no-fetch       Skip the fetch/prune step (no network access): branches are
                    then checked against the state of the remotes at the last
@@ -319,6 +323,7 @@ Options:
 Examples:
   git-cleaner --dry-run ~/Projects
   git-cleaner --keep 'main,develop,release/*' ~/Projects
+  git-cleaner --exclude 'acme,personal/portfolio' ~/Projects
   git-cleaner --no-fetch --gc ~/Projects
 
 Exit status: 0 on success, 1 if some operations failed, 2 on invalid usage.
