@@ -1,0 +1,5 @@
+#!/bin/sh
+# Rejects commit messages that do not follow the repository convention
+# (scripts/check-commit-msg.sh). Enable the hooks of this repository with:
+#   git config core.hooksPath .githooks
+exec sh "$(git rev-parse --show-toplevel)/scripts/check-commit-msg.sh" --hook "$1"

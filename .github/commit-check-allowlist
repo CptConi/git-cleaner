@@ -1,0 +1,5 @@
+# Commits exempted from the commit message check of CI, one full SHA per line,
+# followed by a comment giving the reason, e.g.:
+#   0123456789abcdef0123456789abcdef01234567  # created by the GitHub UI, 2026-10-01
+# Only use it to recover from a non-compliant commit that already reached dev,
+# which forbids force pushes.

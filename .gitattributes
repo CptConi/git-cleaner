@@ -1,0 +1,4 @@
+# Shell scripts and git hooks keep LF line endings on every OS, including
+# Windows checkouts with core.autocrlf: sh fails on CRLF scripts.
+scripts/*.sh text eol=lf
+.githooks/* text eol=lf
