@@ -25,6 +25,11 @@ check() {
 	if { [ "$want" = accept ] && [ $status -ne 0 ]; } || { [ "$want" = reject ] && [ $status -ne 1 ]; }; then
 		echo "FAIL ($mode, want $want, got exit $status): $what"
 		sed 's/^/    /' "$tmp/err"
+		# In GitHub Actions, also as an annotation, readable without the logs.
+		if [ -n "${GITHUB_ACTIONS:-}" ]; then
+			details=$(sed 's/%/%25/g' "$tmp/err" | awk 'NR > 1 { printf "%%0A" } { printf "%s", $0 }')
+			echo "::error title=check-commit-msg test ($mode, want $want, got exit $status)::$what%0A$details"
+		fi
 		failures=$((failures + 1))
 	else
 		echo "ok   ($mode, $want): $what"
