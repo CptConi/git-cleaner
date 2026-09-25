@@ -34,9 +34,9 @@
 
 ## 6. Verification
 
-- [ ] 6.1 `go run github.com/rhysd/actionlint/cmd/actionlint@latest` passes on the workflows; the script tests pass locally and in CI on the three OS
-- [ ] 6.2 `gofmt -l .` is empty, `make vet` and `go test ./...` still pass
-- [ ] 6.3 On a throwaway branch (then deleted), check the job:
+- [x] 6.1 `go run github.com/rhysd/actionlint/cmd/actionlint@latest` passes on the workflows; the script tests pass locally and in CI on the three OS
+- [x] 6.2 `gofmt -l .` is empty, `make vet` and `go test ./...` still pass
+- [x] 6.3 On a throwaway branch (then deleted), check the job:
   - a non-compliant commit fails;
   - a compliant commit on top of it still fails;
   - a force push of the fixed commit passes;
