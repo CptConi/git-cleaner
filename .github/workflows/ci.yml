@@ -66,12 +66,16 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: sh scripts/check-commits.sh
 
+  vulncheck:
+    name: vulnerability scan
+    uses: ./.github/workflows/vulncheck.yml
+
   # Single status to require in the branch rulesets (.github/rulesets), instead
   # of every job. "always()" makes it fail, rather than be skipped (which would
   # count as a success), when a job it aggregates fails.
   tests-passed:
     name: tests passed
-    needs: [test, commit-messages]
+    needs: [test, commit-messages, vulncheck]
     if: always()
     runs-on: ubuntu-latest
     steps:

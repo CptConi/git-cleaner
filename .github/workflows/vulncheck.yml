@@ -1,0 +1,26 @@
+name: Vulnerability scan
+
+# Scans the checked-out source for known vulnerabilities with the latest Go
+# release, for every release platform (scripts/vulncheck.sh). Called by the CI
+# and release workflows; can also be run by hand from the Actions tab.
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  govulncheck:
+    name: govulncheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version: stable # the toolchain that builds the releases
+          cache: false # no dependencies to cache
+
+      - name: Scan for known vulnerabilities
+        run: sh scripts/vulncheck.sh

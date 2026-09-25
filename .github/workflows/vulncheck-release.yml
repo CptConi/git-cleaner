@@ -1,0 +1,107 @@
+name: Release vulnerability scan
+
+# Scans the latest release every week: the source of its tag, analyzed with the
+# Go version that built its binaries. It fails once a Go release fixes a
+# vulnerability that git-cleaner reaches while the published binaries still
+# embed the affected standard library: a new release is needed then. Also runs
+# by hand from the Actions tab. GitHub disables it after 60 days without
+# activity in the repository (README.md, "Vulnerability scan").
+on:
+  schedule:
+    - cron: "17 6 * * 1" # Mondays at 06:17 UTC, off the start of the hour
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  latest-release:
+    name: latest release
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.find.outputs.tag }}
+    steps:
+      - name: Find the latest release
+        id: find
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if tag=$(gh release view --json tagName --jq .tagName 2>"$RUNNER_TEMP/error"); then
+            echo "Latest release: $tag"
+            echo "tag=$tag" >>"$GITHUB_OUTPUT"
+          elif grep -qx "release not found" "$RUNNER_TEMP/error"; then
+            echo "::notice::No release yet: nothing to scan."
+          else
+            cat "$RUNNER_TEMP/error" >&2
+            exit 1
+          fi
+
+  scan:
+    name: scan ${{ needs.latest-release.outputs.tag }}
+    needs: latest-release
+    if: needs.latest-release.outputs.tag != ''
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ needs.latest-release.outputs.tag }}
+    steps:
+      # The script and the allowlist come from the default branch: the tag may
+      # predate them, and accepting a vulnerability must not need a release.
+      - uses: actions/checkout@v7
+
+      - uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ needs.latest-release.outputs.tag }}
+          path: release
+
+      # govulncheck@latest needs a recent Go to build, possibly newer than the
+      # one of the release.
+      - uses: actions/setup-go@v7
+        with:
+          go-version: stable
+          cache: false # no dependencies to cache
+
+      - name: Install govulncheck
+        run: |
+          for attempt in 1 2 3; do
+            GOBIN="$RUNNER_TEMP/bin" go install golang.org/x/vuln/cmd/govulncheck@latest && exit 0
+            sleep $((attempt * 10))
+          done
+          GOBIN="$RUNNER_TEMP/bin" go install golang.org/x/vuln/cmd/govulncheck@latest
+
+      - name: Read the Go version of the release binaries
+        id: binary
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release download "$TAG" --pattern '*_linux_amd64.tar.gz' --dir "$RUNNER_TEMP/archive"
+          mkdir "$RUNNER_TEMP/binary"
+          tar -xzf "$RUNNER_TEMP"/archive/*_linux_amd64.tar.gz -C "$RUNNER_TEMP/binary"
+          # "<file>: go1.27.1": the build information survives -s -w.
+          out=$(go version "$RUNNER_TEMP/binary")
+          echo "$out"
+          version=$(printf '%s\n' "$out" | sed -n '1s/.*: go\([0-9][0-9.]*\)$/\1/p')
+          if [ -z "$version" ]; then
+            echo "::error::Cannot read the Go version of the $TAG binaries."
+            exit 1
+          fi
+          echo "go-version=$version" >>"$GITHUB_OUTPUT"
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version: ${{ steps.binary.outputs.go-version }}
+          cache: false
+
+      - name: Scan the release with its Go version
+        env:
+          GOVULNCHECK: ${{ runner.temp }}/bin/govulncheck
+          GOTOOLCHAIN: local # analyze the standard library of that version
+          GO_VERSION: ${{ steps.binary.outputs.go-version }}
+        run: |
+          status=0
+          sh scripts/vulncheck.sh release || status=$?
+          if [ "$status" -eq 3 ]; then
+            echo "::error title=New release needed::The $TAG binaries, built with Go $GO_VERSION, reach the vulnerabilities above: publish a new release, built with the latest Go. While no Go release fixes one of them, list it in .github/vulncheck-allowlist instead."
+          fi
+          exit "$status"

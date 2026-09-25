@@ -1,0 +1,6 @@
+# Vulnerabilities accepted by the vulnerability scan (scripts/vulncheck.sh),
+# one Go vulnerability ID per line, as the scan prints it, followed by a
+# comment giving the reason and the date, e.g.:
+#   GO-2026-1234  # no Go release fixes it yet, 2026-10-01
+# The scan still lists them, and says when they are no longer reached: remove
+# the entry then.
