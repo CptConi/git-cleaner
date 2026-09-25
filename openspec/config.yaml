@@ -35,6 +35,10 @@ context: |
     The aggregated "tests passed" check is required by the rulesets of dev and main; pull requests into main must
     come from dev ("source is dev" check).
   - Releases: GoReleaser on v* tags (darwin/linux/windows x amd64/arm64 archives + checksums).
+  - Vulnerability scan: scripts/vulncheck.sh runs govulncheck for linux/darwin/windows (cgo disabled) and fails on
+    reached vulnerabilities not listed in .github/vulncheck-allowlist. Runs with stable Go in CI (vulncheck job,
+    part of "tests passed") and before GoReleaser, and weekly on the latest release with the Go version of its
+    binaries (vulncheck-release.yml).
 
   ## Conventions
   - Language: code, comments, commit messages and all OpenSpec artifacts in ENGLISH. Conversational replies to

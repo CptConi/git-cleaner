@@ -20,18 +20,20 @@ The module has no dependency, so the attack surface of the binaries is the Go st
 
 - **One script, `scripts/vulncheck.sh`**:
   - It installs govulncheck once with `go install golang.org/x/vuln/cmd/govulncheck@latest` into a temporary `GOBIN`.
-  - It then runs it for `GOOS` in `linux darwin windows`, with `CGO_ENABLED=0`, `-format json` and `-show verbose`.
+  - It then runs it for `GOOS` in `linux darwin windows`, with `CGO_ENABLED=0`, `-format json` and `-scan symbol`. govulncheck rejects `-show` with JSON output, which holds the findings of every level anyway.
   - It must not use `GOOS=… go run …`, which would cross-compile govulncheck itself.
+  - It scans the module given as argument, the repository by default. `GOVULNCHECK` names a prebuilt govulncheck to use instead of installing one, to analyze with a Go older than the one govulncheck needs to build; govulncheck cannot analyze a Go newer than the one that built it.
   - The JSON output is filtered with `jq`: the findings whose trace reaches a function are the reached vulnerabilities, others are informational. Their IDs, minus the allowlist, decide the result.
   - JSON mode exits 0 even with findings, so a non-zero exit always means a tool or network error. These are retried up to 3 times with a pause, and findings never are.
-  - The script prints the findings in a readable form before failing.
+  - The script prints the findings in a readable form before failing, with exit status 3 like govulncheck, so that callers can tell reached vulnerabilities from errors.
 - **Allowlist** `.github/vulncheck-allowlist`, one OSV ID per line (`GO-2026-1234  # reason, date`). govulncheck itself cannot silence findings, and removing the job from `tests-passed` would switch detection off and still leave releases blocked.
 - **`vulncheck.yml`**, reusable (`workflow_call`) and manually triggerable, scans the checked-out source with `setup-go` stable. `ci.yml` calls it as job `vulncheck`; `release.yml` calls it and the GoReleaser job gets `needs: vulncheck`, so the scan uses the same stable toolchain as the build a moment later.
 - **`vulncheck-release.yml`**, weekly (`cron: "17 6 * * 1"`, off the start of the hour when GitHub may drop queued scheduled jobs) and `workflow_dispatch`:
   - it finds the latest release with `gh release view --json tagName` and exits successfully when there is none;
   - it downloads the `linux_amd64` archive and reads the Go version of the binary with `go version` (build information survives `-s -w`);
-  - it checks out the tag;
-  - it installs govulncheck with stable, then sets up that Go version and runs the script with `GOTOOLCHAIN=local`, so that the analysis uses the standard library the published binaries embed.
+  - it checks out the default branch, for the script and the allowlist, and the tag into `release/`: `v0.1.0` predates the script, and accepting a vulnerability must not require a release;
+  - it installs govulncheck with stable, then sets up that Go version and runs the script on `release/` with `GOTOOLCHAIN=local`, so that the analysis uses the standard library the published binaries embed;
+  - on exit status 3, an annotation says that a new release is needed.
 - **Generic `tests-passed`** (shared with `commit-message-check`): it fails unless every value of `join(needs.*.result, ' ')` is `success`; whichever change lands first introduces it, the other only adds its job to `needs`.
 - **Permissions**: `contents: read` in the scan workflows; the weekly one also reads releases with the default token.
 

@@ -267,17 +267,19 @@ git -C <repository> gc --prune=now
 ## Development
 
 ```sh
-go test ./...      # unit and integration tests (they drive the real git)
-make vet           # go vet for every target platform
-make build         # ./git-cleaner for this machine
-make release       # cross-compile every platform into dist/
+go test ./...            # unit and integration tests (they drive the real git)
+make vet                 # go vet for every target platform
+make build               # ./git-cleaner for this machine
+make release             # cross-compile every platform into dist/
+sh scripts/vulncheck.sh  # known vulnerabilities reached by the code (needs jq)
 ```
 
 Continuous integration runs the tests on Linux, macOS and Windows, with the
-oldest supported Go version and the latest one. Pushing a `v*` tag (e.g.
-`v1.2.0`) makes the [release workflow](.github/workflows/release.yml) build
-the binaries with [GoReleaser](https://goreleaser.com) and publish them on the
-release page.
+oldest supported Go version and the latest one, and the
+[vulnerability scan](#vulnerability-scan). Pushing a `v*` tag (e.g. `v1.2.0`)
+makes the [release workflow](.github/workflows/release.yml) scan the code,
+then build the binaries with [GoReleaser](https://goreleaser.com) and publish
+them on the release page.
 
 | File | Content |
 |---|---|
@@ -288,6 +290,40 @@ release page.
 | `whitelist.go` | `--keep` and `--exclude` pattern parsing and matching |
 | `report.go`, `banner.go` | Console output, summary and startup banner |
 | `platform_*.go` | OS specifics: terminal colors, disk usage of files |
+
+### Vulnerability scan
+
+git-cleaner has no dependency, but its binaries embed the Go standard library
+of the toolchain that built them.
+[`scripts/vulncheck.sh`](scripts/vulncheck.sh) checks it with
+[govulncheck](https://go.dev/doc/tutorial/govulncheck), once per release
+platform (linux, darwin and windows, cgo disabled): it fails when the code
+calls, directly or not, a function affected by a known vulnerability. The
+vulnerabilities of imported packages whose affected functions are never
+called are only reported as informational.
+
+- **Every push and pull request**: CI scans with the latest Go release, as
+  part of the `tests passed` check. Right after a Go security release, the
+  scan may fail for a few hours, until `setup-go` resolves `stable` to the new
+  version: re-run it later.
+- **Every release**: the release workflow scans before GoReleaser builds,
+  with the same Go version. When the scan fails, nothing is published.
+- **Every week**, on Mondays, and by hand from the Actions tab, the
+  [release scan](.github/workflows/vulncheck-release.yml) analyzes the source
+  of the latest release with the Go version that built its binaries. When it
+  fails, a Go release has fixed a vulnerability that the published binaries
+  still contain: publish a new release.
+- **Accepting a vulnerability**, while no Go release fixes it for instance:
+  add its ID, with the reason and the date, to
+  [`.github/vulncheck-allowlist`](.github/vulncheck-allowlist). The scan
+  keeps listing it, and says when it is no longer reached so that the entry
+  can be removed.
+- **Keeping the weekly scan alive**: GitHub disables scheduled workflows after
+  60 days without activity in the repository; re-enable it from the Actions
+  tab (*Release vulnerability scan → Enable workflow*). Its failures are
+  notified to the user who created its schedule, or last changed or
+  re-enabled it, only if GitHub Actions notifications are enabled in their
+  notification settings: keep them enabled.
 
 ### Design notes
 
@@ -335,11 +371,12 @@ release page.
   - A non-compliant commit that already reached `dev` can be exempted by
     adding its full SHA, with the reason, to
     [`.github/commit-check-allowlist`](.github/commit-check-allowlist).
-- The `tests passed` check, which aggregates the test matrix and the commit
-  message check, is required on `dev` and `main`, and pull requests into
-  `main` must come from `dev` (the `source is dev` check). The branch rulesets
-  are versioned in [`.github/rulesets`](.github/rulesets): *Settings → Rules →
-  Rulesets → New ruleset → Import a ruleset*.
+- The `tests passed` check, which aggregates the test matrix, the commit
+  message check and the vulnerability scan, is required on `dev` and `main`,
+  and pull requests into `main` must come from `dev` (the `source is dev`
+  check). The branch rulesets are versioned in
+  [`.github/rulesets`](.github/rulesets): *Settings → Rules → Rulesets → New
+  ruleset → Import a ruleset*.
 
 ## License
 
