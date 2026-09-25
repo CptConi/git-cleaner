@@ -19,7 +19,7 @@ failed=0
 
 # annotate <title> <text>: GitHub error annotation, newlines escaped.
 annotate() {
-	text=$(printf '%s' "$2" | sed 's/%/%25/g' | awk 'BEGIN { ORS = "%0A" } { print }')
+	text=$(printf '%s' "$2" | sed 's/%/%25/g' | awk 'NR > 1 { printf "%%0A" } { printf "%s", $0 }')
 	echo "::error title=$1::$text"
 }
 

@@ -4,6 +4,9 @@ on:
   push:
     branches: ["**"]
   pull_request:
+    # "edited": the title of a pull request into main is checked, since it
+    # becomes the message of its merge commit.
+    types: [opened, synchronize, reopened, edited]
 
 permissions:
   contents: read
@@ -37,16 +40,48 @@ jobs:
       - name: Test
         run: go test ${{ runner.os != 'Windows' && '-race' || '' }} ./...
 
+      # POSIX sh on Linux (dash), macOS and Windows (Git Bash).
+      - name: Test the commit message checker
+        if: matrix.go == 'stable'
+        shell: bash
+        run: sh scripts/check-commit-msg_test.sh
+
+  commit-messages:
+    name: commit messages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # the ranges compare with origin/dev and origin/main
+
+      - name: Check the commit messages
+        env:
+          EVENT: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          ACTOR: ${{ github.actor }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_BASE: ${{ github.event.pull_request.base.ref }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: sh scripts/check-commits.sh
+
   # Single status to require in the branch rulesets (.github/rulesets), instead
-  # of the six matrix jobs. "always()" makes it fail, rather than be skipped
-  # (which would count as a success), when a test job fails.
+  # of every job. "always()" makes it fail, rather than be skipped (which would
+  # count as a success), when a job it aggregates fails.
   tests-passed:
     name: tests passed
-    needs: test
+    needs: [test, commit-messages]
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: Check the test matrix
+      - name: Check that every aggregated job succeeded
         env:
-          RESULT: ${{ needs.test.result }}
-        run: test "$RESULT" = success
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for result in $RESULTS; do
+            if [ "$result" != success ]; then
+              echo "::error::an aggregated job ended with: $result ($RESULTS)"
+              exit 1
+            fi
+          done
