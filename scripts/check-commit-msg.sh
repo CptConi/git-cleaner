@@ -50,6 +50,11 @@ if $hook; then
 	case "$msg" in "fixup! "* | "squash! "* | "amend! "*) exit 0 ;; esac
 else
 	msg=$(cat "$1") # command substitution drops the trailing newlines
+	# Carriage returns are looked for in the file itself: some shells (Git Bash
+	# on Windows) also drop them from command substitutions.
+	total=$(wc -c <"$1")
+	without_cr=$(tr -d '\r' <"$1" | wc -c)
+	[ $((total)) -eq $((without_cr)) ] || reject "it contains a carriage return (Windows line ending)"
 fi
 
 cr=$(printf '\r')
