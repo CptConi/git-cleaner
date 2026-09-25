@@ -42,7 +42,10 @@ context: |
   - Git flow: main only receives merges from dev through a pull request; dev is the integration branch; one branch
     per feature (feature/<name>) created from dev and merged into dev (fast-forward) once the maintainer validated it.
   - Commit messages: one single line "<type> (<feature>) <comma-separated changes>", for instance
-    "feat (exclude-repositories) add --exclude flag, wording for help". NO Co-Authored-By trailer.
+    "feat (exclude-repositories) add --exclude flag, wording for help", with <type> among feat, fix, docs, chore,
+    refactor, test, ci, perf, build, revert and release. NO Co-Authored-By trailer. Enforced by
+    scripts/check-commit-msg.sh in CI (commit-messages job, part of "tests passed") and by the opt-in hook
+    .githooks/commit-msg (git config core.hooksPath .githooks).
 
 rules:
   tasks:

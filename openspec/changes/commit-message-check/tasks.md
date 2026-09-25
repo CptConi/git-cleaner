@@ -22,7 +22,7 @@
 
 ## 5. Documentation
 
-- [ ] 5.1 README Contributing:
+- [x] 5.1 README Contributing:
   - the format and the allowed types;
   - `git config core.hooksPath .githooks` and what it replaces;
   - rebasing feature branches instead of merging `dev` into them;
@@ -30,7 +30,7 @@
   - the pull request title of merges into `main`;
   - the allowlist;
   - `tests passed` no longer being only the test matrix.
-- [ ] 5.2 `openspec/config.yaml` conventions: list the allowed types
+- [x] 5.2 `openspec/config.yaml` conventions: list the allowed types
 
 ## 6. Verification
 

@@ -33,6 +33,8 @@ The convention is `<type> (<feature>) <comma-separated changes>` on a single lin
   - push to `main`: skipped (only merged pull requests reach it).
 
   Alternative rejected: `before..after`. A compliant commit pushed on top of a rejected one would turn the tip green, and after a force push `before` is not fetched, so the range fails.
+
+  This logic lives in `scripts/check-commits.sh`, which reads the GitHub context from environment variables (no `${{ }}` interpolation inside the shell script, so a pull request title cannot inject commands). It lists the commits before looping over them: an invalid range fails the job instead of silently checking nothing.
 - **Merge commits are checked** (no `--no-merges`): a merge commit on a feature branch would otherwise reach `dev` unchecked by fast-forward. Feature branches are rebased on `dev` rather than merged, as the README explains.
 - **Pull request title of pull requests into `main`** is checked as well, with `edited` added to the `pull_request` types of `ci.yml`: the repository setting "Allow merge commits → Pull request title" makes it the merge commit message.
 - **Exemptions by event identity**:

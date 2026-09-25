@@ -316,12 +316,30 @@ release page.
   last step, before being merged into `dev` (`/opsx:archive`): `dev` only
   accepts commits already tested on another branch.
 - Commit messages fit on one line: `<type> (<feature>) <what changed>`, e.g.
-  `feat (keep-patterns) add glob support, wording for help`.
-- The `tests passed` check (the whole CI matrix) is required on `dev` and
-  `main`, and pull requests into `main` must come from `dev` (the `source is
-  dev` check). The branch rulesets are versioned in
-  [`.github/rulesets`](.github/rulesets): *Settings → Rules → Rulesets → New
-  ruleset → Import a ruleset*.
+  `feat (keep-patterns) add glob support, wording for help`, where `<type>` is
+  one of `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `ci`, `perf`,
+  `build`, `revert` and `release`; no body, no trailer such as
+  `Co-Authored-By`. CI checks every commit that a push or a pull request
+  brings, merge commits included
+  ([`scripts/check-commit-msg.sh`](scripts/check-commit-msg.sh)):
+  - To get the same check before each commit, run
+    `git config core.hooksPath .githooks`. For this repository, it replaces
+    the hooks of `.git/hooks` and any global `core.hooksPath`.
+  - Rebase feature branches on `dev` rather than merging `dev` into them: the
+    default merge message fails the check.
+  - To revert, use `git revert --no-commit <sha>` followed by
+    `git commit -m "revert (<feature>) ..."`, since `git revert` writes a
+    multi-line message and skips the hook.
+  - The title of a pull request into `main` becomes its merge commit message,
+    so it follows the format too, e.g. `release (v1.1.0) merge dev into main`.
+  - A non-compliant commit that already reached `dev` can be exempted by
+    adding its full SHA, with the reason, to
+    [`.github/commit-check-allowlist`](.github/commit-check-allowlist).
+- The `tests passed` check, which aggregates the test matrix and the commit
+  message check, is required on `dev` and `main`, and pull requests into
+  `main` must come from `dev` (the `source is dev` check). The branch rulesets
+  are versioned in [`.github/rulesets`](.github/rulesets): *Settings → Rules →
+  Rulesets → New ruleset → Import a ruleset*.
 
 ## License
 

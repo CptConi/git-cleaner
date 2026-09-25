@@ -26,6 +26,7 @@ The repository follows a strict commit convention: one single line `<type> (<fea
 
 - New files:
   - `scripts/check-commit-msg.sh` and its test script `scripts/check-commit-msg_test.sh`;
+  - `scripts/check-commits.sh` (CI: commit ranges, exemptions, allowlist, pull request titles);
   - `.githooks/commit-msg`;
   - `.gitattributes` (LF endings for the scripts and the hook);
   - `.github/commit-check-allowlist`.
