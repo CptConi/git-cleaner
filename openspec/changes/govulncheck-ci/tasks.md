@@ -38,5 +38,5 @@
   - it fails, listing the reached standard library vulnerabilities, when run with Go 1.22.0 as the analysis toolchain (govulncheck built with stable, `PATH="$(GOTOOLCHAIN=go1.22.0 go env GOROOT)/bin:$PATH" GOTOOLCHAIN=local`);
   - adding those IDs to the allowlist makes it pass.
 - [x] 4.3 `gofmt -l .`, `make vet` and `go test ./...` still pass (no Go code changes, so no dry run is needed)
-- [ ] 4.4 On the feature branch, CI shows the `vulncheck` job green and `tests passed` waiting for it
+- [x] 4.4 On the feature branch, CI shows the `vulncheck` job green and `tests passed` waiting for it
 - [ ] 4.5 After the next merge of `dev` into `main`, trigger `vulncheck-release.yml` manually: it succeeds, scanning the latest release or reporting that none exists
